@@ -1,0 +1,68 @@
+{
+  "Novo": [
+    {
+      "nome": "Apresentação",
+      "texto": "Olá {empresa}! 👋 Vi o seu negócio e adorei. Sou especialista em [seu serviço] e acredito que posso agregar muito valor ao seu negócio. Podemos conversar 5 minutos?"
+    },
+    {
+      "nome": "Curiosidade",
+      "texto": "Oi {empresa}, tudo bem? Estou entrando em contato porque tenho alguns clientes do mesmo segmento que você e os resultados têm sido incríveis. Posso te mostrar?"
+    }
+  ],
+  "Contato": [
+    {
+      "nome": "Follow-up",
+      "texto": "Olá {empresa}! Fiz contato há alguns dias sobre [serviço]. Gostaria de saber se tiveram a oportunidade de pensar sobre isso. Posso ajudar com alguma informação?"
+    },
+    {
+      "nome": "Reunião",
+      "texto": "Oi {empresa}! Que tal agendarmos uma reunião rápida de 20 minutos? Posso mostrar como empresas similares estão aumentando seus resultados."
+    }
+  ],
+  "Reunião": [
+    {
+      "nome": "Confirmação",
+      "texto": "Olá {empresa}! Passando para confirmar nossa reunião de amanhã. Vou preparar uma apresentação personalizada para o seu negócio. Até lá!"
+    },
+    {
+      "nome": "Pós-reunião",
+      "texto": "Foi um prazer conversar com você, {empresa}! Conforme combinado, vou preparar a proposta e te envio em breve. Qualquer dúvida, estou à disposição!"
+    }
+  ],
+  "Proposta": [
+    {
+      "nome": "Envio",
+      "texto": "Olá {empresa}! Acabei de enviar a proposta por e-mail. Você conseguiu receber? Posso tirar alguma dúvida sobre os valores ou a proposta?"
+    },
+    {
+      "nome": "Follow-up",
+      "texto": "Oi {empresa}! Passando para verificar se puderam analisar a proposta. Há alguma objeção que eu possa ajudar a esclarecer?"
+    }
+  ],
+  "Negociação": [
+    {
+      "nome": "Condições",
+      "texto": "Olá {empresa}! Para fecharmos, podemos ajustar as condições de pagamento conforme sua necessidade. O que seria mais conveniente para vocês?"
+    },
+    {
+      "nome": "Urgência",
+      "texto": "Oi {empresa}! Só para reforçar que essa condição especial é válida até [data]. Não quero que percam essa oportunidade!"
+    }
+  ],
+  "Cliente": [
+    {
+      "nome": "Boas-vindas",
+      "texto": "Seja muito bem-vindo, {empresa}! 🎉 É um prazer ter vocês como clientes. Em breve entro em contato com os próximos passos do onboarding."
+    },
+    {
+      "nome": "Indicação",
+      "texto": "Olá {empresa}! Espero que estejam satisfeitos com os resultados! Caso conheçam outros negócios que possam se beneficiar, ficaremos honrados com uma indicação."
+    }
+  ],
+  "Perdido": [
+    {
+      "nome": "Reativação",
+      "texto": "Olá {empresa}! Faz um tempo que não conversamos. Passando para ver se algo mudou e se posso ajudar de alguma forma agora."
+    }
+  ]
+}

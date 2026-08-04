@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Base7 CRM | Gestão de Leads</title>
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Outfit',sans-serif;
+}
+
+
+body{
+
+    background:#050816;
+    color:#fff;
+    min-height:100vh;
+
+}
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+
+.sidebar{
+
+    position:fixed;
+    left:0;
+    top:0;
+
+    width:260px;
+    height:100vh;
+
+    background:
+    linear-gradient(
+    180deg,
+    #081226,
+    #050816
+    );
+
+    border-right:1px solid rgba(0,229,255,.15);
+
+    padding:25px;
+
+}
+
+
+.logo{
+
+    font-size:30px;
+    font-weight:800;
+
+    color:#00e5ff;
+
+    margin-bottom:10px;
+
+}
+
+
+.logo span{
+
+    color:#2563eb;
+
+}
+
+
+.subtitle{
+
+    color:#94a3b8;
+    font-size:13px;
+
+    margin-bottom:40px;
+
+}
+
+
+
+.menu button{
+
+    width:100%;
+
+    background:none;
+    border:none;
+
+    color:#cbd5e1;
+
+    padding:15px;
+
+    text-align:left;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    margin-bottom:8px;
+
+    transition:.3s;
+
+    font-size:15px;
+
+}
+
+
+
+.menu button:hover{
+
+    background:#112044;
+
+    color:#00e5ff;
+
+}
+
+
+
+
+/* =========================
+   MAIN
+========================= */
+
+
+.main{
+
+    margin-left:260px;
+
+    padding:30px;
+
+}
+
+
+
+
+.header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:30px;
+
+}
+
+
+
+.header h1{
+
+    font-size:32px;
+
+}
+
+
+.header p{
+
+    color:#94a3b8;
+
+}
+
+
+
+
+.btn-primary{
+
+    background:
+    linear-gradient(
+    90deg,
+    #2563eb,
+    #00e5ff
+    );
+
+    border:none;
+
+    padding:14px 25px;
+
+    color:white;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+}
+
+
+
+
+/* =========================
+ DASHBOARD CARDS
+========================= */
+
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(4,1fr);
+
+    gap:20px;
+
+}
+
+
+
+.card{
+
+    background:#0b1225;
+
+    border:1px solid rgba(255,255,255,.05);
+
+    padding:25px;
+
+    border-radius:20px;
+
+}
+
+
+
+.card h3{
+
+    color:#94a3b8;
+
+    font-size:14px;
+
+}
+
+
+
+.card strong{
+
+    display:block;
+
+    margin-top:10px;
+
+    font-size:35px;
+
+    color:#00e5ff;
+
+}
+
+
+
+
+/* =========================
+ CONTENT BOX
+========================= */
+
+
+.box{
+
+    background:#0b1225;
+
+    margin-top:30px;
+
+    padding:25px;
+
+    border-radius:20px;
+
+    border:1px solid rgba(255,255,255,.05);
+
+}
+
+
+
+.box-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+
+
+.search{
+
+    background:#050816;
+
+    border:1px solid #1e293b;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    color:white;
+
+    width:300px;
+
+}
+
+
+
+/* =========================
+ TABLE
+========================= */
+
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+
+th{
+
+    color:#64748b;
+
+    text-align:left;
+
+    padding:15px;
+
+    font-size:13px;
+
+}
+
+
+td{
+
+    padding:15px;
+
+    border-top:1px solid rgba(255,255,255,.05);
+
+}
+
+
+
+.status{
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+}
+
+
+.novo{
+
+    background:#1e3a8a;
+
+}
+
+
+.contato{
+
+    background:#854d0e;
+
+}
+
+
+.negociacao{
+
+    background:#065f46;
+
+}
+
+
+.cliente{
+
+    background:#166534;
+
+}
+
+
+
+
+
+/* =========================
+ MODAL
+========================= */
+
+
+.modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+    rgba(0,0,0,.75);
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+
+.modal-content{
+
+    width:500px;
+
+    background:#0b1225;
+
+    padding:30px;
+
+    border-radius:20px;
+
+}
+
+
+
+.modal-content h2{
+
+    margin-bottom:20px;
+
+}
+
+
+
+input,select,textarea{
+
+    width:100%;
+
+    padding:13px;
+
+    margin-bottom:12px;
+
+    background:#050816;
+
+    color:white;
+
+    border:
+
+    1px solid #1e293b;
+
+    border-radius:10px;
+
+}
+
+
+
+textarea{
+
+    height:100px;
+
+}
+
+
+
+.close{
+
+    float:right;
+
+    cursor:pointer;
+
+    color:#94a3b8;
+
+}
+
+
+
+
+/* =========================
+ RESPONSIVO
+========================= */
+
+
+@media(max-width:1000px){
+
+
+.sidebar{
+
+    width:80px;
+
+    padding:15px;
+
+}
+
+
+.logo{
+
+    font-size:20px;
+
+}
+
+
+.subtitle,
+.menu span{
+
+    display:none;
+
+}
+
+
+.main{
+
+    margin-left:80px;
+
+}
+
+
+.cards{
+
+    grid-template-columns:
+    repeat(2,1fr);
+
+}
+
+
+}
+
+
+
+@media(max-width:600px){
+
+
+.cards{
+
+    grid-template-columns:1fr;
+
+}
+
+
+.header{
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+
+.search{
+
+    width:100%;
+
+}
+
+
+}
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+
+<div class="logo">
+BASE<span>7</span>
+</div>
+
+
+<div class="subtitle">
+CRM Intelligence
+</div>
+
+
+<div class="menu">
+
+
+<button>
+📊 <span>Dashboard</span>
+</button>
+
+
+<button>
+👥 <span>Leads</span>
+</button>
+
+
+<button>
+🔥 <span>Prospecção</span>
+</button>
+
+
+<button>
+📈 <span>Relatórios</span>
+</button>
+
+
+<button>
+⚙️ <span>Configurações</span>
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- MAIN -->
+
+
+<div class="main">
+
+
+<div class="header">
+
+
+<div>
+
+<h1>
+Dashboard
+</h1>
+
+<p>
+Organize seus leads e aumente suas vendas.
+</p>
+
+</div>
+
+
+
+<button class="btn-primary" onclick="abrirModal()">
+
++ Novo Lead
+
+</button>
+
+
+</div>
+
+
+
+
+
+<!-- CARDS -->
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h3>
+Total Leads
+</h3>
+
+<strong id="totalLeads">
+0
+</strong>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+Novos Hoje
+</h3>
+
+<strong id="novosHoje">
+0
+</strong>
+
+</div>
+
+
+
+
+<div class="card">
+
+<h3>
+Negociações
+</h3>
+
+<strong id="negociacoes">
+0
+</strong>
+
+</div>
+
+
+
+
+<div class="card">
+
+<h3>
+Clientes
+</h3>
+
+<strong id="clientes">
+0
+</strong>
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- LEADS -->
+
+
+<div class="box">
+
+
+<div class="box-header">
+
+
+<h2>
+Lista de Leads
+</h2>
+
+
+<input 
+class="search"
+id="busca"
+placeholder="Pesquisar lead..."
+>
+
+
+</div>
+
+
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>
+Empresa
+</th>
+
+
+<th>
+Nicho
+</th>
+
+
+<th>
+Cidade
+</th>
+
+
+<th>
+Status
+</th>
+
+
+<th>
+Ações
+</th>
+
+
+</tr>
+
+</thead>
+
+
+<tbody id="listaLeads">
+
+
+</tbody>
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+<!-- MODAL -->
+
+
+<div class="modal" id="modal">
+
+
+<div class="modal-content">
+
+
+<span class="close" onclick="fecharModal()">
+✕
+</span>
+
+
+<h2>
+Novo Lead
+</h2>
+
+
+
+<input id="empresa" placeholder="Nome da empresa">
+
+
+<input id="nicho" placeholder="Nicho">
+
+
+<input id="cidade" placeholder="Cidade">
+
+
+<input id="telefone" placeholder="WhatsApp">
+
+
+<input id="site" placeholder="Site">
+
+
+<select id="status">
+
+<option value="Novo">
+Novo
+</option>
+
+<option value="Contato">
+Contato realizado
+</option>
+
+<option value="Negociação">
+Em negociação
+</option>
+
+<option value="Cliente">
+Cliente
+</option>
+
+</select>
+
+
+
+<textarea id="obs" placeholder="Observações"></textarea>
+
+
+
+<button class="btn-primary" onclick="salvarLead()">
+
+Salvar Lead
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+function abrirModal(){
+
+document.getElementById("modal").style.display="flex";
+
+}
+
+
+function fecharModal(){
+
+document.getElementById("modal").style.display="none";
+
+}
+
+
+</script>
+
+
+
+</body>
+
+</html>

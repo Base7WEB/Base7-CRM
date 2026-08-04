@@ -1,0 +1,9 @@
+{
+  "name": "base7-crm",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/wa-agent",
+    "packages/shared"
+  ]
+}

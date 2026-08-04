@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+**/.env.local
+
+# Next.js
+.next/
+out/
+
+# build outputs
+dist/
+build/
+
+# WhatsApp agent local session (nunca deve ir pro repo)
+apps/wa-agent/**/session-data/
+apps/wa-agent/**/sessions/
+
+# legado Python — nunca versionar sessão do WhatsApp nem chaves em texto plano
+legacy/backend/data/whatsapp_session/
+legacy/backend/data/config.json
+legacy/backend/__pycache__/
+legacy/backend/**/__pycache__/
+legacy/backend/.pytest_cache/
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
+.turbo/

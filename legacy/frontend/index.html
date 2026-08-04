@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BASE7 CRM PRO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="watermark"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo-wrap">
+    <img src="/logo.png" alt="BASE7 CRM" class="sidebar-logo-img">
+    <div class="sidebar-tagline">CRM Intelligence PRO</div>
+  </div>
+
+  <button id="notif-bell" onclick="Notificacoes.toggle()"
+          style="position:relative;margin:0 16px 12px;padding:8px 12px;background:var(--bg3);
+                 border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;
+                 gap:8px;cursor:pointer;color:var(--text);font-size:12.5px;width:calc(100% - 32px)">
+    <span class="ic" data-icon-name="bell" data-icon-size="15"></span>
+    <span>Notificações</span>
+    <span id="notif-badge" style="display:none;margin-left:auto;background:var(--danger);color:#fff;
+                                   font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600"></span>
+  </button>
+
+  <nav class="menu">
+    <button class="menu-btn ativo" data-view="dashboard">
+      <span class="ic" data-icon-name="dashboard" data-icon-size="18"></span>
+      <span class="menu-label">Dashboard</span>
+    </button>
+    <button class="menu-btn" data-view="pipeline">
+      <span class="ic" data-icon-name="pipeline" data-icon-size="18"></span>
+      <span class="menu-label">Pipeline</span>
+    </button>
+    <button class="menu-btn" data-view="leads">
+      <span class="ic" data-icon-name="leads" data-icon-size="18"></span>
+      <span class="menu-label">Leads</span>
+    </button>
+    <button class="menu-btn" data-view="prospeccao">
+      <span class="ic" data-icon-name="search" data-icon-size="18"></span>
+      <span class="menu-label">Prospecção</span>
+    </button>
+    <button class="menu-btn" data-view="whatsapp">
+      <span class="ic" data-icon-name="whatsapp" data-icon-size="18"></span>
+      <span class="menu-label">WhatsApp</span>
+    </button>
+    <button class="menu-btn" data-view="relatorios">
+      <span class="ic" data-icon-name="chart" data-icon-size="18"></span>
+      <span class="menu-label">Relatórios</span>
+    </button>
+    <button class="menu-btn" data-view="config">
+      <span class="ic" data-icon-name="settings" data-icon-size="18"></span>
+      <span class="menu-label">Configurações</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-txt" id="statusTxt">Verificando...</span>
+  </div>
+</aside>
+
+<div id="notif-painel" style="display:none;position:fixed;left:222px;top:150px;width:320px;
+                               max-height:420px;overflow-y:auto;background:var(--bg2);
+                               border:1px solid var(--border);border-radius:10px;
+                               box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:200"></div>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+
+  <!-- ─── DASHBOARD ──────────────────────────────────────── -->
+  <section class="view ativa" id="view-dashboard">
+    <div class="topbar">
+      <div>
+        <h1>Dashboard</h1>
+        <p id="dash-data">Carregando...</p>
+      </div>
+      <button class="btn" onclick="CRM.abrirModalNovo()">
+        <span class="ic" data-icon-name="plus" data-icon-size="15"></span> Novo Lead
+      </button>
+    </div>
+
+    <!-- Meta Mensal -->
+    <div class="meta-box" id="meta-box" style="display:none">
+      <div class="meta-header">
+        <div class="meta-titulo">
+          <span class="ic" data-icon-name="target" data-icon-size="16"></span>
+          Meta de Fechamento — <span id="meta-mes-label" style="color:var(--muted);font-weight:400"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="meta-valores" id="meta-valores">R$ 0 de R$ 0</div>
+          <div class="meta-pct-badge" id="meta-pct">0%</div>
+        </div>
+      </div>
+      <div class="meta-bar-wrap">
+        <div class="meta-bar" id="meta-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon si-blue"><span class="ic" data-icon-name="leads" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-total">0</div><div class="stat-label">Total de Leads</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-cyan"><span class="ic" data-icon-name="new" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-novos">0</div><div class="stat-label">Leads Novos</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-yellow"><span class="ic" data-icon-name="nego" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-neg">0</div><div class="stat-label">Em Negociação</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-green"><span class="ic" data-icon-name="target" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-cli">0</div><div class="stat-label">Clientes</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-teal"><span class="ic" data-icon-name="dollar" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num stat-num-sm" id="st-pot">R$ 0</div><div class="stat-label">Potencial</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-purple"><span class="ic" data-icon-name="percent" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-conv">0%</div><div class="stat-label">Conversão</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-rose"><span class="ic" data-icon-name="calendar" data-icon-size="20"></span></div>
+        <div class="stat-body"><div class="stat-num" id="st-fu">0</div><div class="stat-label">Follow-ups Hoje</div></div>
+      </div>
+    </div>
+
+    <div class="dash-grid-2">
+      <div class="box">
+        <div class="box-header">
+          <h2>Funil de Conversão</h2>
+          <button class="box-link" onclick="App.navegarPara('pipeline')">Ver pipeline</button>
+        </div>
+        <div id="funil-bars"></div>
+      </div>
+      <div class="box">
+        <div class="box-header">
+          <h2>Follow-ups Hoje</h2>
+          <span id="fu-hoje-count" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+        <div id="followups-hoje" class="followups-lista"></div>
+      </div>
+    </div>
+
+    <div class="dash-grid-2b">
+      <div class="box">
+        <div class="box-header">
+          <h2>Leads Recentes</h2>
+          <button class="box-link" onclick="App.navegarPara('leads')">Ver todos</button>
+        </div>
+        <div id="leads-recentes"></div>
+      </div>
+      <div class="box">
+        <div class="box-header"><h2>Origens dos Leads</h2></div>
+        <div id="origem-dist"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PIPELINE ─────────────────────────────────────── -->
+  <section class="view" id="view-pipeline">
+    <div class="topbar">
+      <div><h1>Pipeline</h1><p>Arraste os cards entre as colunas · Cards coloridos indicam dias na etapa</p></div>
+      <button class="btn" onclick="CRM.abrirModalNovo()">
+        <span class="ic" data-icon-name="plus" data-icon-size="15"></span> Novo Lead
+      </button>
+    </div>
+    <div class="pipeline" id="kanban"></div>
+  </section>
+
+  <!-- ─── LEADS ─────────────────────────────────────────── -->
+  <section class="view" id="view-leads">
+    <div class="topbar">
+      <div><h1>Leads</h1><p id="leads-count">0 leads</p></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-outline" onclick="ImportarArquivo.abrir()">
+          <span class="ic" data-icon-name="upload" data-icon-size="14"></span> Importar Arquivo
+        </button>
+        <button class="btn" onclick="CRM.abrirModalNovo()">
+          <span class="ic" data-icon-name="plus" data-icon-size="15"></span> Novo Lead
+        </button>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-header">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input style="width:200px;margin:0" id="busca" placeholder="Buscar empresa...">
+          <select style="width:140px;margin:0" id="filtro-status">
+            <option value="">Todos os status</option>
+            <option>Novo</option><option>Contato</option><option>Reunião</option>
+            <option>Proposta</option><option>Negociação</option><option>Cliente</option><option>Perdido</option>
+          </select>
+          <select style="width:140px;margin:0" id="filtro-origem">
+            <option value="">Todas as origens</option>
+            <option>Google Maps</option><option>Google</option><option>Instagram</option>
+            <option>Indicação</option><option>Prospecção ativa</option><option>Manual</option><option>CSV</option>
+          </select>
+          <input style="width:120px;margin:0" id="filtro-tag" placeholder="Filtrar por tag...">
+        </div>
+        <button class="btn-outline" onclick="CRM.exportarCSV()">
+          <span class="ic" data-icon-name="download" data-icon-size="14"></span> CSV
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-col="empresa">Empresa</th>
+              <th data-col="nicho">Nicho</th>
+              <th data-col="cidade">Cidade</th>
+              <th data-col="status">Status</th>
+              <th data-col="score">Score</th>
+              <th data-col="followup">Follow-up</th>
+              <th>Próxima Ação</th>
+              <th style="width:100px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-leads"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PROSPECÇÃO ──────────────────────────────────────── -->
+  <section class="view" id="view-prospeccao">
+    <div class="topbar">
+      <div><h1>Prospecção</h1><p>Busca automática de leads via Google Maps ou Instagram</p></div>
+    </div>
+
+    <!-- Abas de prospecção -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)">
+      <button class="tab-btn ativo" id="prosp-tab-maps" onclick="Prospeccao._showTab('maps',this)">Google Maps</button>
+      <button class="tab-btn" id="prosp-tab-ig" onclick="Prospeccao._showTab('ig',this)">Instagram</button>
+    </div>
+
+    <!-- Google Maps tab -->
+    <div id="prosp-panel-maps">
+      <div class="box">
+        <h2 style="margin-bottom:18px;font-size:16px">Parâmetros de Busca</h2>
+        <div class="search-form">
+          <div><label>Nicho / Segmento</label><input id="p-nicho" placeholder="academia, restaurante..."></div>
+          <div>
+            <label>Cidade(s) <span style="color:var(--muted);font-size:10px">— separe com vírgula para múltiplas</span></label>
+            <input id="p-cidade" placeholder="Campinas, Sorocaba, Jundiaí">
+          </div>
+          <div><label>Raio (km)</label><input id="p-raio" type="number" value="10" min="1" max="50"></div>
+          <div>
+            <label>Rating mínimo</label>
+            <select id="p-rating">
+              <option value="0">Todos</option>
+              <option value="3">3.0+</option>
+              <option value="3.5">3.5+</option>
+              <option value="4">4.0+</option>
+              <option value="4.5">4.5+</option>
+            </select>
+          </div>
+          <div><label>Máx. por cidade</label><input id="p-max" type="number" value="40" min="5" max="120"></div>
+          <button class="btn" id="btn-pesquisar" onclick="Prospeccao.iniciar()">
+            <span class="ic" data-icon-name="search" data-icon-size="15"></span> Pesquisar
+          </button>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="p-enriquecer" style="width:15px;height:15px;margin:0">
+          <label for="p-enriquecer" style="margin:0;font-size:12.5px;cursor:pointer">
+            Enriquecimento automático <span style="color:var(--muted)">(visita o site para extrair e-mail — mais lento)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="box" id="box-resultados" style="display:none">
+        <div id="progresso-area">
+          <p class="progress-txt" id="progresso-txt">Iniciando...</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+        </div>
+        <div class="resultados-acoes" id="resultados-acoes" style="display:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="checkbox" id="sel-todos" onchange="Prospeccao.selecionarTodos(this.checked)">
+            <label for="sel-todos" style="margin:0;cursor:pointer;font-size:13px">Selecionar todos</label>
+            <span id="sel-count" style="font-size:12px;color:var(--muted)">0 selecionados</span>
+          </div>
+          <button class="btn" id="btn-importar" onclick="Prospeccao.importar()" disabled>
+            <span class="ic" data-icon-name="download" data-icon-size="14"></span>
+            <span id="btn-importar-txt">Importar Selecionados (0)</span>
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px"></th>
+                <th>Empresa</th><th>Endereço</th><th>Telefone</th>
+                <th>E-mail</th><th>Site</th><th>Nicho</th><th>Rating</th><th>Reviews</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-resultados"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instagram tab -->
+    <div id="prosp-panel-ig" style="display:none">
+      <div class="box">
+        <h2 style="margin-bottom:6px;font-size:16px">Prospecção via Instagram</h2>
+        <p style="color:var(--muted);font-size:12.5px;margin-bottom:18px">Busca perfis de negócios por hashtag. Requer que o Instagram não exija login (funcionalidade limitada).</p>
+        <div class="search-form" style="grid-template-columns:2fr 1fr auto">
+          <div><label>Hashtag</label><input id="ig-hashtag" placeholder="#academia #restaurante #clinica"></div>
+          <div><label>Máx. perfis</label><input id="ig-max" type="number" value="20" min="5" max="50"></div>
+          <button class="btn" id="btn-ig-buscar" onclick="Prospeccao.iniciarInstagram()">
+            <span class="ic" data-icon-name="search" data-icon-size="15"></span> Buscar
+          </button>
+        </div>
+      </div>
+      <div class="box" id="ig-resultados-area" style="display:none">
+        <p class="progress-txt" id="ig-progresso-txt">Buscando...</p>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr><th style="width:36px"></th><th>Perfil</th><th>Instagram</th></tr></thead>
+            <tbody id="ig-tabela"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;text-align:right">
+          <button class="btn" onclick="Prospeccao.importarIG()">
+            <span class="ic" data-icon-name="download" data-icon-size="14"></span> Importar Selecionados
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── WHATSAPP ───────────────────────────────────────── -->
+  <section class="view" id="view-whatsapp">
+    <div class="topbar">
+      <div><h1>WhatsApp</h1><p>Conexão, campanhas e conversas com seus leads</p></div>
+    </div>
+
+    <!-- Abas do módulo WhatsApp -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)">
+      <button class="tab-btn ativo" id="wa-tab-conexao" onclick="Whatsapp._showTab('conexao',this)">Conexão</button>
+      <button class="tab-btn" id="wa-tab-dashboard" onclick="Whatsapp._showTab('dashboard',this)">Dashboard</button>
+      <button class="tab-btn" id="wa-tab-campanhas" onclick="Whatsapp._showTab('campanhas',this)">Campanhas</button>
+      <button class="tab-btn" id="wa-tab-conversas" onclick="Whatsapp._showTab('conversas',this)">Conversas</button>
+    </div>
+
+    <!-- Painel: Conexão -->
+    <div id="wa-panel-conexao">
+      <div class="box" style="max-width:460px">
+        <div id="wa-conexao-desconectado">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div class="status-dot" id="wa-status-dot"></div>
+            <strong id="wa-status-txt">WhatsApp desconectado</strong>
+          </div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:18px">
+            Conecte seu WhatsApp para iniciar a automação de contatos.
+          </p>
+          <button class="btn" id="wa-btn-conectar" onclick="Whatsapp.conectar()">
+            <span class="ic" data-icon-name="whatsapp" data-icon-size="15"></span> Conectar WhatsApp
+          </button>
+        </div>
+
+        <div id="wa-conexao-qr" style="display:none;text-align:center">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;text-align:left">
+            1. Abra o WhatsApp no celular<br>
+            2. Vá até <strong>Dispositivos conectados</strong><br>
+            3. Escolha <strong>Conectar dispositivo</strong><br>
+            4. Escaneie o QR Code abaixo
+          </p>
+          <img id="wa-qr-img" alt="QR Code do WhatsApp" style="width:220px;height:220px;border-radius:8px;background:#fff;padding:8px;margin:0 auto 12px">
+          <p class="progress-txt" id="wa-qr-status">Aguardando conexão...</p>
+        </div>
+
+        <div id="wa-conexao-ativa" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div class="status-dot online"></div>
+            <strong>WhatsApp conectado</strong>
+          </div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:4px">Número</p>
+          <p style="font-size:15px;margin-bottom:16px" id="wa-numero-conectado">—</p>
+          <button class="btn-outline btn-danger" onclick="Whatsapp.desconectar()">Desconectar</button>
+        </div>
+
+        <div id="wa-conexao-erro" style="display:none;margin-top:14px">
+          <p style="color:var(--danger);font-size:12.5px" id="wa-erro-txt"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel: Dashboard WhatsApp -->
+    <div id="wa-panel-dashboard" style="display:none">
+      <div id="wa-dashboard-conteudo"></div>
+    </div>
+
+    <!-- Painel: Campanhas -->
+    <div id="wa-panel-campanhas" style="display:none">
+      <div id="wa-campanhas-conteudo"></div>
+    </div>
+
+    <!-- Painel: Conversas -->
+    <div id="wa-panel-conversas" style="display:none">
+      <div id="wa-conversas-conteudo"></div>
+    </div>
+  </section>
+
+  <!-- ─── RELATÓRIOS ─────────────────────────────────────── -->
+  <section class="view" id="view-relatorios">
+    <div class="topbar">
+      <div><h1>Relatórios</h1><p>Visão analítica do seu pipeline</p></div>
+      <button class="btn" onclick="Relatorios.gerarRelatorioSemanal()" id="btn-relatorio-semanal">
+        <span class="ic" data-icon-name="chart" data-icon-size="15"></span> Gerar Relatório Semanal
+      </button>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-box"><h3>Leads por Status</h3><canvas id="chart-status"></canvas></div>
+      <div class="chart-box"><h3>Leads por Mês</h3><canvas id="chart-meses"></canvas></div>
+      <div class="chart-box"><h3>Valor em Pipeline por Etapa (R$)</h3><canvas id="chart-valor"></canvas></div>
+      <div class="chart-box"><h3>Follow-ups — Próximos 7 Dias</h3><div id="followups-semana" class="followups-lista"></div></div>
+    </div>
+  </section>
+
+  <!-- ─── CONFIGURAÇÕES ─────────────────────────────────── -->
+  <section class="view" id="view-config">
+    <div class="topbar"><div><h1>Configurações</h1><p>Ajustes do sistema</p></div></div>
+    <div class="config-grid">
+      <div>
+        <!-- Scraper -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="search" data-icon-size="16"></span> Scraper / Prospecção</h3>
+            <div class="config-item"><label>Delay entre requests (ms)</label><input id="cfg-delay" type="number" value="1500" min="500" max="5000"></div>
+            <div class="config-item"><label>Máx. resultados padrão</label><input id="cfg-max" type="number" value="40"></div>
+            <div class="config-item">
+              <label>Rating mínimo padrão</label>
+              <select id="cfg-rating"><option value="0">Todos</option><option value="3.5">3.5+</option><option value="4">4.0+</option></select>
+            </div>
+            <button class="btn" onclick="Config.salvar()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar
+            </button>
+          </div>
+        </div>
+
+        <!-- Meta Mensal -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="target" data-icon-size="16"></span> Meta Mensal de Fechamento</h3>
+            <div class="config-item">
+              <label>Valor da meta (R$)</label>
+              <input id="cfg-meta-valor" type="number" placeholder="50000" min="0">
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px">A meta aparece como barra de progresso no Dashboard.</p>
+            <button class="btn" onclick="Config.salvarMeta()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Meta
+            </button>
+          </div>
+        </div>
+
+        <!-- IA -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="star" data-icon-size="16"></span> IA — Claude API</h3>
+            <p id="ia-lib-status" style="font-size:12px;margin-bottom:10px"></p>
+            <p id="ia-key-hint" style="font-size:12px;margin-bottom:12px"></p>
+            <div class="config-item">
+              <label>Chave API da Anthropic (Claude)</label>
+              <input id="cfg-ia-key" type="password" placeholder="sk-ant-...">
+            </div>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Use {empresa} nos templates de WhatsApp para inserir o nome do lead.</p>
+            <button class="btn" onclick="Config.salvarChaveIA()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Chave
+            </button>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="settings" data-icon-size="16"></span> Status do Backend</h3>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+              <div class="status-dot" id="statusDot2"></div>
+              <span class="status-txt" id="statusTxt2">Verificando...</span>
+            </div>
+            <button class="btn-outline" onclick="App.verificarBackend()">
+              <span class="ic" data-icon-name="refresh" data-icon-size="14"></span> Verificar Conexão
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- Agendamento -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="calendar" data-icon-size="16"></span> Prospecção Agendada</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">O backend executa automaticamente a busca no dia da semana configurado.</p>
+            <div class="config-item" style="display:flex;align-items:center;gap:10px">
+              <input type="checkbox" id="agd-ativo" style="width:16px;height:16px;margin:0">
+              <label for="agd-ativo" style="margin:0;font-size:13px;cursor:pointer">Ativar prospecção agendada</label>
+            </div>
+            <div class="config-item"><label>Nicho</label><input id="agd-nicho" placeholder="academia, clínica..."></div>
+            <div class="config-item"><label>Cidades (separadas por vírgula)</label><input id="agd-cidades" placeholder="Campinas, Sorocaba"></div>
+            <div class="config-item"><label>Máx. por cidade</label><input id="agd-max" type="number" value="30"></div>
+            <div class="config-item">
+              <label>Dia da semana</label>
+              <select id="agd-dia">
+                <option value="0">Segunda-feira</option>
+                <option value="1" selected>Terça-feira</option>
+                <option value="2">Quarta-feira</option>
+                <option value="3">Quinta-feira</option>
+                <option value="4">Sexta-feira</option>
+              </select>
+            </div>
+            <button class="btn" onclick="Config.salvarAgendamento()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Agendamento
+            </button>
+          </div>
+        </div>
+
+        <!-- Templates WhatsApp -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="whatsapp" data-icon-size="16"></span> Templates WhatsApp</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Use <code style="background:var(--bg3);padding:1px 5px;border-radius:4px">{empresa}</code> para inserir o nome do lead.</p>
+            <div id="templates-editor"></div>
+            <button class="btn" style="margin-top:12px" onclick="Config.salvarTemplates()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Templates
+            </button>
+          </div>
+        </div>
+
+        <!-- Automação de IA -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="star" data-icon-size="16"></span> Automação de IA</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+              Controla o quanto a IA age sozinha ao responder mensagens recebidas no WhatsApp.
+            </p>
+
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400">
+                <input type="radio" name="ia-automacao-nivel" value="analise" style="width:auto">
+                Apenas analisar
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400">
+                <input type="radio" name="ia-automacao-nivel" value="sugestao" style="width:auto">
+                Analisar + sugerir resposta
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400">
+                <input type="radio" name="ia-automacao-nivel" value="automatica" style="width:auto">
+                Responder automaticamente em situações permitidas
+              </label>
+            </div>
+
+            <p style="font-size:11.5px;color:var(--muted);margin-bottom:8px">
+              Categorias liberadas para resposta automática (só valem com o nível "Responder automaticamente"):
+            </p>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;font-size:13px">
+                <input type="checkbox" id="ia-auto-perguntas_simples" style="width:auto"> Perguntas simples
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;font-size:13px">
+                <input type="checkbox" id="ia-auto-preco" style="width:auto"> Perguntas sobre preço
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;font-size:13px">
+                <input type="checkbox" id="ia-auto-reuniao" style="width:auto"> Pedido de reunião
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:not-allowed;font-weight:400;font-size:13px;color:var(--muted)" title="Sempre escalado para um humano, não pode ser automatizado">
+                <input type="checkbox" id="ia-auto-contratar" style="width:auto" disabled> Interesse em contratar <span style="font-size:10px">(sempre humano)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:not-allowed;font-weight:400;font-size:13px;color:var(--muted)" title="Sempre escalado para um humano, não pode ser automatizado">
+                <input type="checkbox" id="ia-auto-negociacao" style="width:auto" disabled> Negociação <span style="font-size:10px">(sempre humano)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:not-allowed;font-weight:400;font-size:13px;color:var(--muted)" title="Sempre escalado para um humano, não pode ser automatizado">
+                <input type="checkbox" id="ia-auto-reclamacao" style="width:auto" disabled> Reclamação <span style="font-size:10px">(sempre humano)</span>
+              </label>
+            </div>
+
+            <button class="btn" style="margin-top:14px" onclick="Config.salvarAutomacaoIA()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Automação
+            </button>
+          </div>
+        </div>
+
+        <!-- Conhecimento comercial da Base7 -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="star" data-icon-size="16"></span> Conhecimento comercial da Base7</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+              A IA usa somente estas informações para responder leads — nunca inventa preço, prazo ou condição fora daqui.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><label>Sobre a empresa</label><textarea id="kb-sobre" rows="2"></textarea></div>
+              <div><label>Produtos</label><textarea id="kb-produtos" rows="2"></textarea></div>
+              <div><label>Serviços</label><textarea id="kb-servicos" rows="2"></textarea></div>
+              <div><label>Preços</label><textarea id="kb-precos" rows="2"></textarea></div>
+              <div><label>Diferenciais</label><textarea id="kb-diferenciais" rows="2"></textarea></div>
+              <div><label>Perguntas frequentes (FAQ)</label><textarea id="kb-faq" rows="2"></textarea></div>
+              <div><label>Objeções comuns e como responder</label><textarea id="kb-objecoes" rows="2"></textarea></div>
+              <div><label>Políticas comerciais</label><textarea id="kb-politicas" rows="2"></textarea></div>
+            </div>
+            <button class="btn" style="margin-top:12px" onclick="Config.salvarConhecimento()">
+              <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Conhecimento
+            </button>
+          </div>
+        </div>
+
+        <!-- Backup -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="download" data-icon-size="16"></span> Backup de Dados</h3>
+            <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Exporte seus leads como JSON ou restaure um backup anterior.</p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="btn" onclick="Config.exportarBackup()">
+                <span class="ic" data-icon-name="download" data-icon-size="14"></span> Exportar Backup JSON
+              </button>
+              <button class="btn-outline" onclick="document.getElementById('inp-import').click()">
+                <span class="ic" data-icon-name="upload" data-icon-size="14"></span> Importar Backup JSON
+              </button>
+              <input type="file" id="inp-import" accept=".json" style="display:none" onchange="Config.importarBackup(this)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Zona de perigo -->
+        <div class="box">
+          <div class="config-section">
+            <h3><span class="ic" data-icon-name="alert" data-icon-size="16"></span> Zona de Perigo</h3>
+            <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Apaga todos os leads permanentemente. Ação irreversível.</p>
+            <button class="btn-sm btn-danger" onclick="Config.limparTudo()">
+              <span class="ic" data-icon-name="trash" data-icon-size="13"></span> Apagar Todos os Leads
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════ MODAL DE LEAD ══════════ -->
+<div class="modal" id="modal-lead">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-titulo">Novo Lead</h2>
+      <button class="modal-close" onclick="CRM.fecharModal()">
+        <span class="ic" data-icon-name="x" data-icon-size="14"></span>
+      </button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn ativo" onclick="App.trocarTab(this,'tab-dados')">Dados</button>
+      <button class="tab-btn" id="tab-tasks-btn" onclick="App.trocarTab(this,'tab-tasks')" style="display:none">Tarefas</button>
+      <button class="tab-btn" id="tab-ia-btn" onclick="App.trocarTab(this,'tab-ia')" style="display:none">IA</button>
+      <button class="tab-btn" id="tab-hist-btn" onclick="App.trocarTab(this,'tab-historico')" style="display:none">Histórico</button>
+    </div>
+
+    <!-- Tab: Dados -->
+    <div class="tab-panel ativo" id="tab-dados">
+      <input type="hidden" id="lead-id">
+      <div class="form-row">
+        <div><label>Empresa *</label><input id="f-empresa" placeholder="Nome da empresa"></div>
+        <div><label>Responsável</label><input id="f-responsavel" placeholder="Nome do responsável"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Nicho</label><input id="f-nicho" placeholder="academia, restaurante..."></div>
+        <div><label>Cidade</label><input id="f-cidade" placeholder="Campinas - SP"></div>
+      </div>
+      <div><label>Endereço</label><input id="f-endereco" placeholder="Rua, número, bairro"></div>
+      <div class="form-row">
+        <div><label>WhatsApp</label><input id="f-telefone" placeholder="(11) 99999-9999"></div>
+        <div><label>Instagram</label><input id="f-instagram" placeholder="@usuario"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Site</label><input id="f-site" placeholder="https://..."></div>
+        <div><label>E-mail</label><input id="f-email" placeholder="contato@empresa.com"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Valor Estimado (R$)</label><input id="f-valor" type="number" placeholder="0"></div>
+        <div><label>Origem</label>
+          <select id="f-origem">
+            <option>Manual</option><option>Google Maps</option><option>Google</option>
+            <option>Instagram</option><option>Indicação</option><option>Prospecção ativa</option><option>CSV</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div><label>Status</label>
+          <select id="f-status">
+            <option>Novo</option><option>Contato</option><option>Reunião</option>
+            <option>Proposta</option><option>Negociação</option><option>Cliente</option><option>Perdido</option>
+          </select>
+        </div>
+        <div><label>Follow-up</label><input type="date" id="f-followup"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Rating Google</label><input id="f-rating" type="number" step="0.1" min="0" max="5" placeholder="4.2"></div>
+        <div><label>Nº de Reviews</label><input id="f-reviews" type="number" placeholder="0"></div>
+      </div>
+
+      <!-- Tags -->
+      <div class="tags-area">
+        <label>Tags</label>
+        <div class="tags-rapidas" id="tags-rapidas"></div>
+        <div class="tags-chips-wrap" id="tags-chips-wrap"></div>
+        <div class="tags-input-row">
+          <input id="tag-input" placeholder="Nova tag..." onkeydown="CRM._tagInputKeydown(event)" style="margin:0">
+          <button class="btn-sm btn-ghost" onclick="CRM._adicionarTag()">+ Adicionar</button>
+        </div>
+      </div>
+
+      <label>Observações</label>
+      <textarea id="f-obs" rows="2" placeholder="Anotações sobre o lead..."></textarea>
+
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn" onclick="CRM.salvar()">
+          <span class="ic" data-icon-name="check" data-icon-size="14"></span> Salvar Lead
+        </button>
+        <button class="btn-outline" onclick="CRM.fecharModal()">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Tab: Tarefas -->
+    <div class="tab-panel" id="tab-tasks">
+      <div class="task-add-row">
+        <input id="task-input" placeholder="Descreva a tarefa..." style="margin:0" onkeydown="if(event.key==='Enter')CRM._adicionarTask()">
+        <input type="date" id="task-prazo" style="margin:0">
+        <button class="btn" onclick="CRM._adicionarTask()">
+          <span class="ic" data-icon-name="plus" data-icon-size="14"></span> Adicionar
+        </button>
+      </div>
+      <div id="tasks-lista"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="btn-sm btn-ghost" onclick="CRM.salvar()">Salvar tarefas</button>
+      </div>
+    </div>
+
+    <!-- Tab: IA -->
+    <div class="tab-panel" id="tab-ia">
+      <div style="margin-bottom:16px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+          A IA analisa o lead e sugere score, próxima ação e insights estratégicos.<br>
+          Configure sua chave Claude em <strong>Configurações → IA</strong>.
+        </p>
+        <button class="btn" id="btn-analisar-ia" onclick="CRM.analisarIA()">
+          <span class="ic" data-icon-name="star" data-icon-size="14"></span> Analisar com IA
+        </button>
+      </div>
+      <div id="ia-resultado"></div>
+    </div>
+
+    <!-- Tab: Histórico -->
+    <div class="tab-panel" id="tab-historico">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <input id="nova-obs-hist" placeholder="Adicionar anotação ao histórico..." style="flex:1;margin:0">
+        <button class="btn" onclick="CRM.adicionarHistorico()">
+          <span class="ic" data-icon-name="plus" data-icon-size="14"></span> Adicionar
+        </button>
+      </div>
+      <div id="historico-lista"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL TEMPLATES WHATSAPP ══════════ -->
+<div class="modal" id="modal-wa-templates">
+  <div class="modal-content" style="width:540px">
+    <div class="modal-header">
+      <h2 id="wa-template-titulo">Templates WhatsApp</h2>
+      <button class="modal-close" onclick="CRM.fecharModalWA()">
+        <span class="ic" data-icon-name="x" data-icon-size="14"></span>
+      </button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Clique em um template para abrir o WhatsApp com a mensagem pré-escrita.</p>
+    <div class="wa-templates-lista" id="wa-templates-lista"></div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL RELATÓRIO SEMANAL ══════════ -->
+<div class="modal" id="modal-relatorio-semanal">
+  <div class="modal-content" style="width:620px">
+    <div class="modal-header">
+      <h2>Relatório Semanal</h2>
+      <button class="modal-close" onclick="Relatorios.fecharModalRelatorio()">
+        <span class="ic" data-icon-name="x" data-icon-size="14"></span>
+      </button>
+    </div>
+    <div id="relatorio-semanal-conteudo"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn-outline" onclick="Relatorios.copiarRelatorio()">
+        <span class="ic" data-icon-name="download" data-icon-size="14"></span> Copiar texto
+      </button>
+      <button class="btn-outline" onclick="Relatorios.fecharModalRelatorio()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL IMPORTAR ARQUIVO (CSV/XLSX/TXT) ══════════ -->
+<div class="modal" id="modal-importar-arquivo">
+  <div class="modal-content" style="width:680px;max-height:85vh;overflow-y:auto">
+    <div class="modal-header">
+      <h2>Importar Leads</h2>
+      <button class="modal-close" onclick="ImportarArquivo.fechar()">
+        <span class="ic" data-icon-name="x" data-icon-size="14"></span>
+      </button>
+    </div>
+
+    <div id="imp-passo-arquivo">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px">
+        Aceita arquivos <strong>CSV</strong>, <strong>XLSX</strong> ou <strong>TXT</strong>
+        (lista de telefones, um por linha — opcionalmente no formato "Nome | Telefone").
+      </p>
+      <input type="file" id="imp-input-arquivo" accept=".csv,.xlsx,.txt" onchange="ImportarArquivo.selecionarArquivo(this)">
+    </div>
+
+    <div id="imp-passo-mapeamento" style="display:none">
+      <h3 style="font-size:13px;margin-bottom:10px">Mapeie as colunas</h3>
+      <div id="imp-mapeamento-campos" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+
+      <h3 style="font-size:13px;margin-bottom:8px">
+        Pré-visualização <span id="imp-total-linhas" style="color:var(--muted);font-weight:400"></span>
+      </h3>
+      <div class="table-wrap" style="max-height:220px;overflow-y:auto;margin-bottom:16px">
+        <table>
+          <thead id="imp-preview-thead"></thead>
+          <tbody id="imp-preview-tbody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn" onclick="ImportarArquivo.confirmar()">
+          <span class="ic" data-icon-name="download" data-icon-size="14"></span> Importar
+        </button>
+        <button class="btn-outline" onclick="ImportarArquivo.reiniciar()">Escolher outro arquivo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL CAMPANHA WHATSAPP (WIZARD) ══════════ -->
+<div class="modal" id="modal-campanha">
+  <div class="modal-content" style="width:760px;max-height:85vh;overflow-y:auto">
+    <div class="modal-header">
+      <h2>Nova Campanha</h2>
+      <button class="modal-close" onclick="Campanhas.fecharWizard()">
+        <span class="ic" data-icon-name="x" data-icon-size="14"></span>
+      </button>
+    </div>
+
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab-btn ativo" onclick="App.trocarTab(this,'camp-passo-1')">1. Detalhes</button>
+      <button class="tab-btn" onclick="App.trocarTab(this,'camp-passo-2')">2. Leads</button>
+      <button class="tab-btn" onclick="App.trocarTab(this,'camp-passo-3'); Campanhas._atualizarPreview()">3. Mensagem</button>
+      <button class="tab-btn" onclick="App.trocarTab(this,'camp-passo-4')">4. Follow-ups</button>
+      <button class="tab-btn" onclick="App.trocarTab(this,'camp-passo-5')">5. Configurações</button>
+      <button class="tab-btn" onclick="App.trocarTab(this,'camp-passo-6'); Campanhas._renderRevisao()">6. Revisão</button>
+    </div>
+
+    <!-- Passo 1: Detalhes -->
+    <div class="tab-panel ativo" id="camp-passo-1">
+      <div><label>Nome da campanha</label><input id="camp-nome" placeholder="Prospecção Barbearias — Campinas"></div>
+      <div style="margin-top:10px"><label>Descrição</label><textarea id="camp-descricao" rows="2"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+        <div><label>Nicho</label><input id="camp-nicho" placeholder="barbearia"></div>
+        <div><label>Cidade</label><input id="camp-cidade" placeholder="Campinas"></div>
+      </div>
+      <div style="margin-top:10px"><label>Tags <span style="color:var(--muted);font-size:10px">— separadas por vírgula</span></label><input id="camp-tags" placeholder="prioridade, campanha-agosto"></div>
+    </div>
+
+    <!-- Passo 2: Leads -->
+    <div class="tab-panel" id="camp-passo-2">
+      <div class="search-form" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div><label>Nicho contém</label><input id="camp-f-nicho" oninput="Campanhas.filtrarLeads()"></div>
+        <div><label>Cidade contém</label><input id="camp-f-cidade" oninput="Campanhas.filtrarLeads()"></div>
+        <div>
+          <label>Status</label>
+          <select id="camp-f-status" onchange="Campanhas.filtrarLeads()">
+            <option value="">Todos</option>
+            <option>Novo</option><option>Contato</option><option>Reunião</option>
+            <option>Proposta</option><option>Negociação</option><option>Cliente</option><option>Perdido</option>
+          </select>
+        </div>
+        <div><label>Score mín.</label><input id="camp-f-score" type="number" min="0" max="100" value="0" oninput="Campanhas.filtrarLeads()"></div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px">Somente leads com telefone cadastrado aparecem aqui.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="camp-sel-todos" onchange="Campanhas.selecionarTodosFiltrados(this.checked)">
+          <label for="camp-sel-todos" style="margin:0;cursor:pointer;font-size:13px">Selecionar todos os filtrados</label>
+        </div>
+        <span id="camp-sel-count" style="font-size:12px;color:var(--muted)">0 lead(s) selecionado(s)</span>
+      </div>
+      <div class="table-wrap" style="max-height:280px;overflow-y:auto">
+        <table>
+          <thead><tr><th style="width:36px"></th><th>Empresa</th><th>Cidade</th><th>Status</th><th>Score</th></tr></thead>
+          <tbody id="camp-tabela-leads"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Passo 3: Mensagem -->
+    <div class="tab-panel" id="camp-passo-3">
+      <div>
+        <label>Template base</label>
+        <select id="camp-template-select" onchange="Campanhas._selecionarTemplate()">
+          <option value="">Mensagem personalizada</option>
+        </select>
+      </div>
+      <div style="margin-top:10px">
+        <label>Mensagem</label>
+        <textarea id="camp-mensagem" rows="5" oninput="Campanhas._atualizarPreview()"></textarea>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin:6px 0">
+        Variáveis: {empresa} {responsavel} {cidade} {nicho} {rating} {site} {instagram}
+      </p>
+      <div class="box" style="margin-top:10px">
+        <h3 style="font-size:13px;margin-bottom:8px">Pré-visualização</h3>
+        <p id="camp-preview-lead" style="font-size:12px;color:var(--muted);margin-bottom:6px"></p>
+        <p id="camp-preview-texto" style="font-size:13px;white-space:pre-wrap"></p>
+      </div>
+    </div>
+
+    <!-- Passo 4: Follow-ups -->
+    <div class="tab-panel" id="camp-passo-4">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
+        Follow-ups automáticos para leads que não responderem (dias após o envio anterior).
+      </p>
+      <div id="camp-followups-lista"></div>
+      <button class="btn-sm btn-ghost" onclick="Campanhas._addFollowup()">+ Adicionar follow-up</button>
+    </div>
+
+    <!-- Passo 5: Configurações -->
+    <div class="tab-panel" id="camp-passo-5">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label>Intervalo mínimo (segundos)</label><input id="camp-intervalo-min" type="number" value="20" min="5"></div>
+        <div><label>Intervalo máximo (segundos)</label><input id="camp-intervalo-max" type="number" value="60" min="10"></div>
+        <div><label>Limite diário de envios</label><input id="camp-limite-diario" type="number" value="80" min="1"></div>
+        <div><label>Limite de envios desta campanha</label><input id="camp-limite-campanha" type="number" value="0" min="0" placeholder="0 = igual ao nº de leads"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="camp-modo-conservador">
+        <label for="camp-modo-conservador" style="margin:0;cursor:pointer;font-size:13px">Modo conservador (intervalos mais longos)</label>
+      </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="camp-modo-teste">
+        <label for="camp-modo-teste" style="margin:0;cursor:pointer;font-size:13px">Modo teste (simula a fila sem enviar mensagens reais)</label>
+      </div>
+    </div>
+
+    <!-- Passo 6: Revisão -->
+    <div class="tab-panel" id="camp-passo-6">
+      <div id="camp-revisao-conteudo"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn" onclick="Campanhas.criar()">
+          <span class="ic" data-icon-name="check" data-icon-size="14"></span> Criar Campanha
+        </button>
+        <button class="btn-outline" onclick="Campanhas.fecharWizard()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/icons.js"></script>
+<script src="js/api.js"></script>
+<script src="js/crm.js"></script>
+<script src="js/pipeline.js"></script>
+<script src="js/prospeccao.js"></script>
+<script src="js/relatorios.js"></script>
+<script src="js/whatsapp.js"></script>
+<script src="js/whatsapp_dashboard.js"></script>
+<script src="js/campanhas.js"></script>
+<script src="js/conversas.js"></script>
+<script src="js/importar.js"></script>
+<script src="js/notificacoes.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+// ── Tabs de prospecção (Google Maps / Instagram) ─────────────────────────────
+Prospeccao._showTab = function(tab, btn) {
+  document.querySelectorAll("#view-prospeccao .tab-btn").forEach(b => b.classList.remove("ativo"));
+  btn.classList.add("ativo");
+  document.getElementById("prosp-panel-maps").style.display = tab === "maps" ? "block" : "none";
+  document.getElementById("prosp-panel-ig").style.display   = tab === "ig"   ? "block" : "none";
+};
+
+// ── Inicializa editor de templates quando abre Config ────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    Config.renderTemplatesEditor();
+    // Mostra mês atual na meta
+    const el = document.getElementById("meta-mes-label");
+    if (el) {
+      const [y, m] = new Date().toISOString().slice(0, 7).split("-");
+      const meses  = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      el.textContent = `${meses[parseInt(m)-1]}/${y}`;
+    }
+  }, 100);
+});
+</script>
+
+</body>
+</html>
