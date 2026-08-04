@@ -157,16 +157,25 @@ export type Database = {
       leads: {
         Row: {
           atencao_necessaria: boolean
+          cidade: string | null
+          classificacao: string
           contato_nome: string | null
           created_at: string
+          email: string | null
           empresa: string
           id: string
+          instagram: string | null
           intencao_atual: string | null
           last_interaction_at: string | null
           legacy_id: string | null
+          nicho: string | null
           origem: string
+          rating_google: number | null
           responsavel_id: string | null
           responsavel_legado_texto: string | null
+          reviews_google: number | null
+          score: number
+          site: string | null
           status: string
           telefone: string
           temperatura: string | null
@@ -174,16 +183,25 @@ export type Database = {
         }
         Insert: {
           atencao_necessaria?: boolean
+          cidade?: string | null
+          classificacao?: string
           contato_nome?: string | null
           created_at?: string
+          email?: string | null
           empresa: string
           id?: string
+          instagram?: string | null
           intencao_atual?: string | null
           last_interaction_at?: string | null
           legacy_id?: string | null
+          nicho?: string | null
           origem?: string
+          rating_google?: number | null
           responsavel_id?: string | null
           responsavel_legado_texto?: string | null
+          reviews_google?: number | null
+          score?: number
+          site?: string | null
           status?: string
           telefone: string
           temperatura?: string | null
@@ -191,16 +209,25 @@ export type Database = {
         }
         Update: {
           atencao_necessaria?: boolean
+          cidade?: string | null
+          classificacao?: string
           contato_nome?: string | null
           created_at?: string
+          email?: string | null
           empresa?: string
           id?: string
+          instagram?: string | null
           intencao_atual?: string | null
           last_interaction_at?: string | null
           legacy_id?: string | null
+          nicho?: string | null
           origem?: string
+          rating_google?: number | null
           responsavel_id?: string | null
           responsavel_legado_texto?: string | null
+          reviews_google?: number | null
+          score?: number
+          site?: string | null
           status?: string
           telefone?: string
           temperatura?: string | null
@@ -215,6 +242,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          stage: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          stage: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          stage?: string
+          title?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -255,6 +306,63 @@ export type Database = {
           {
             foreignKeyName: "messages_sent_by_fkey"
             columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outbox_messages: {
+        Row: {
+          attempt_count: number
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string | null
+          profile_id: string
+          sent_at: string | null
+          status: string
+          to_phone: string
+          whatsapp_message_id: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          profile_id: string
+          sent_at?: string | null
+          status?: string
+          to_phone: string
+          whatsapp_message_id?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          profile_id?: string
+          sent_at?: string | null
+          status?: string
+          to_phone?: string
+          whatsapp_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbox_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outbox_messages_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

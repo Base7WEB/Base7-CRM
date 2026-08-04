@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Classificacao } from "@/lib/scoring";
 
 const STATUS_LABEL: Record<string, string> = {
   NOVO: "Novo",
@@ -17,6 +18,13 @@ const STATUS_LABEL: Record<string, string> = {
   SEM_RESPOSTA: "Sem resposta",
 };
 
+const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
+  QUENTE: "🔥 Quente",
+  QUALIFICADO: "🟠 Qualificado",
+  MORNO: "🟡 Morno",
+  FRIO: "🔵 Frio",
+};
+
 export default async function LeadsPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
@@ -24,8 +32,8 @@ export default async function LeadsPage() {
   const supabase = await createClient();
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, empresa, telefone, status, responsavel_id, responsavel_legado_texto, created_at")
-    .order("created_at", { ascending: false });
+    .select("id, empresa, telefone, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at")
+    .order("score", { ascending: false });
 
   const responsavelIds = [...new Set((leads ?? []).map((l) => l.responsavel_id).filter(Boolean))];
   const { data: responsaveis } =
@@ -55,6 +63,7 @@ export default async function LeadsPage() {
               <th className="px-4 py-2">Empresa</th>
               <th className="px-4 py-2">Telefone</th>
               <th className="px-4 py-2">Status</th>
+              <th className="px-4 py-2">Classificação</th>
               <th className="px-4 py-2">Responsável</th>
             </tr>
           </thead>
@@ -69,6 +78,9 @@ export default async function LeadsPage() {
                 <td className="px-4 py-2 text-neutral-600">{lead.telefone}</td>
                 <td className="px-4 py-2 text-neutral-600">{STATUS_LABEL[lead.status] ?? lead.status}</td>
                 <td className="px-4 py-2 text-neutral-600">
+                  {CLASSIFICACAO_LABEL[lead.classificacao as Classificacao]} · {lead.score}
+                </td>
+                <td className="px-4 py-2 text-neutral-600">
                   {lead.responsavel_id
                     ? responsavelById.get(lead.responsavel_id) ?? "—"
                     : lead.responsavel_legado_texto || "Não atribuído"}
@@ -77,7 +89,7 @@ export default async function LeadsPage() {
             ))}
             {(leads ?? []).length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
                   Nenhum lead ainda.
                 </td>
               </tr>

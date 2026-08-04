@@ -28,6 +28,38 @@ const STATUS_MAP = {
   Perdido: "PERDIDO",
 };
 
+// Mesmos pesos/regras de apps/web/src/lib/scoring/deterministic.ts --
+// reimplementado aqui (script standalone, fora do bundler do Next) só pra
+// calcular o score inicial dos leads migrados. Fonte da verdade pra
+// scoring em produção é o módulo TS; se os pesos mudarem lá, replicar aqui.
+function scoreLeadForMigration(lead) {
+  let score = 0;
+  if (lead.telefone) score += 10;
+  const rating = lead.rating_google;
+  if (rating != null) {
+    if (rating >= 4.5) score += 15;
+    else if (rating >= 4.0) score += 10;
+    else if (rating >= 3.0) score += 5;
+  }
+  const reviews = lead.reviews_google;
+  if (reviews != null) {
+    if (reviews >= 100) score += 15;
+    else if (reviews >= 30) score += 10;
+    else if (reviews >= 5) score += 5;
+  }
+  if (lead.instagram) score += 8;
+  if (lead.site) score += 8;
+  if (lead.email) score += 4;
+  if (lead.cidade) score += 5;
+  if (lead.nicho) score += 5;
+  // engajamento (respondeu/contato enviado) fica 0 aqui -- leads migrados
+  // do JSON nao tem historico de eventos de WhatsApp real, isso e
+  // recalculado automaticamente assim que o agente processar uma mensagem.
+  score = Math.min(100, score);
+  const classificacao = score >= 80 ? "QUENTE" : score >= 60 ? "QUALIFICADO" : score >= 40 ? "MORNO" : "FRIO";
+  return { score, classificacao };
+}
+
 function toE164(telefone, telefoneNormalizado) {
   const digitsOnly = (s) => (s ?? "").replace(/\D/g, "");
 
@@ -77,6 +109,29 @@ async function main() {
     }
     phoneSeen.set(telefone, lead.empresa);
 
+    const nicho = lead.nicho || null;
+    const cidade = lead.cidade || null;
+    // Bug de coleta do scraper legado: link de Instagram às vezes cai no
+    // campo "site" em vez de "instagram". Não corrigido aqui (fora de
+    // escopo) -- migrado como está, cada campo pontua o scoring do jeito
+    // que realmente está preenchido.
+    const instagram = lead.instagram || null;
+    const site = lead.site || null;
+    const email = lead.email || null;
+    const ratingGoogle = typeof lead.rating_google === "number" ? lead.rating_google : null;
+    const reviewsGoogle = typeof lead.reviews_google === "number" ? lead.reviews_google : null;
+
+    const { score, classificacao } = scoreLeadForMigration({
+      telefone,
+      rating_google: ratingGoogle,
+      reviews_google: reviewsGoogle,
+      instagram,
+      site,
+      email,
+      cidade,
+      nicho,
+    });
+
     const row = {
       empresa: lead.empresa || "(sem nome)",
       contato_nome: lead.responsavel || null,
@@ -85,6 +140,15 @@ async function main() {
       status: STATUS_MAP[lead.status] ?? "NOVO",
       origem: "manual",
       legacy_id: lead.id,
+      nicho,
+      cidade,
+      instagram,
+      site,
+      email,
+      rating_google: ratingGoogle,
+      reviews_google: reviewsGoogle,
+      score,
+      classificacao,
       created_at: lead.criadoEm ?? new Date().toISOString(),
       updated_at: lead.atualizadoEm ?? new Date().toISOString(),
     };

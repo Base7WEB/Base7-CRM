@@ -75,6 +75,46 @@ async function resolvePhoneJid(socket, msg) {
   return null;
 }
 
+async function fetchOutbox() {
+  const res = await fetch(`${API_BASE_URL}/api/agent/whatsapp/outbox`, {
+    headers: { Authorization: `Bearer ${AGENT_TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  const json = await res.json();
+  return json.items ?? [];
+}
+
+async function reportOutboxResult(id, payload) {
+  await fetch(`${API_BASE_URL}/api/agent/whatsapp/outbox/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AGENT_TOKEN}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function processOutbox(socket) {
+  let items;
+  try {
+    items = await fetchOutbox();
+  } catch (err) {
+    console.error("[wa-agent] Erro buscando fila de envio:", err.message);
+    return;
+  }
+
+  for (const item of items) {
+    const digits = item.to_phone.replace(/\D/g, "");
+    const jid = `${digits}@s.whatsapp.net`;
+    try {
+      const sent = await socket.sendMessage(jid, { text: item.body });
+      await reportOutboxResult(item.id, { status: "SENT", whatsapp_message_id: sent?.key?.id ?? null });
+      console.log(`[wa-agent] Mensagem da fila enviada para ${item.to_phone}.`);
+    } catch (err) {
+      await reportOutboxResult(item.id, { status: "FAILED", error: err.message });
+      console.error(`[wa-agent] Falha ao enviar mensagem da fila para ${item.to_phone}:`, err.message);
+    }
+  }
+}
+
 async function postStatus(status) {
   try {
     const res = await fetch(`${API_BASE_URL}/api/agent/whatsapp/status`, {
@@ -131,6 +171,8 @@ async function connect() {
     }
   });
 
+  let outboxTimer = null;
+
   socket.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
@@ -143,9 +185,12 @@ async function connect() {
     if (connection === "open") {
       console.log("[wa-agent] Conectado ao WhatsApp.");
       await postStatus("CONNECTED");
+      outboxTimer = setInterval(() => processOutbox(socket), 4000);
     }
 
     if (connection === "close") {
+      if (outboxTimer) clearInterval(outboxTimer);
+
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut;
       await postStatus("DISCONNECTED");

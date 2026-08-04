@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { toE164 } from "@/lib/phone";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/types";
+import { recomputeAndSaveLeadScore } from "@/lib/scoring/persist";
 
 type LeadEventType = Database["public"]["Tables"]["lead_events"]["Row"]["type"];
 
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: createError?.message ?? "Erro ao criar lead." }, { status: 500 });
     }
     lead = created;
+    await recomputeAndSaveLeadScore(supabaseAdmin, lead.id);
   }
 
   const { data: insertedMessages, error: insertError } = await supabaseAdmin
@@ -94,6 +96,7 @@ export async function POST(request: Request) {
     });
     if (wasNew) {
       await supabaseAdmin.from("leads").update({ status: "CONTATO_REALIZADO" }).eq("id", lead.id).eq("status", "NOVO");
+      await recomputeAndSaveLeadScore(supabaseAdmin, lead.id);
     }
   }
 
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
         .update({ status: "INTERAGINDO" })
         .eq("id", lead.id)
         .in("status", ["NOVO", "CONTATO_REALIZADO"]);
+      await recomputeAndSaveLeadScore(supabaseAdmin, lead.id);
     }
     await supabaseAdmin.from("leads").update({ last_interaction_at: now }).eq("id", lead.id);
   }
