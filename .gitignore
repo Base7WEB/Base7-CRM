@@ -32,3 +32,6 @@ legacy/backend/.pytest_cache/
 Thumbs.db
 *.log
 .turbo/
+
+.vercel
+.env*
