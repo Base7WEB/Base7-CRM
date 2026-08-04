@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const path = require("node:path");
 const qrcodeTerminal = require("qrcode-terminal");
@@ -56,6 +56,25 @@ async function postInbound({ phone, whatsappMessageId, text, direction }) {
   }
 }
 
+// O WhatsApp vem migrando pro endereçamento por LID (@lid), um id de
+// privacidade que não é o número de telefone. Quando isso acontece,
+// remoteJidAlt costuma trazer o JID por telefone equivalente; se não vier,
+// caímos pro mapeamento interno do Baileys (signalRepository.lidMapping).
+async function resolvePhoneJid(socket, msg) {
+  const remoteJid = msg.key?.remoteJid;
+  if (remoteJid && remoteJid.endsWith("@s.whatsapp.net")) return remoteJid;
+  if (msg.key?.remoteJidAlt) return msg.key.remoteJidAlt;
+  if (remoteJid && remoteJid.endsWith("@lid")) {
+    try {
+      const pn = await socket.signalRepository.lidMapping.getPNForLID(remoteJid);
+      if (pn) return pn;
+    } catch (err) {
+      console.error("[wa-agent] Falha ao resolver LID->telefone:", err.message);
+    }
+  }
+  return null;
+}
+
 async function postStatus(status) {
   try {
     const res = await fetch(`${API_BASE_URL}/api/agent/whatsapp/status`, {
@@ -99,7 +118,13 @@ async function connect() {
       const text = extractText(msg.message);
       if (!text || !msg.key?.id) continue;
 
-      const phone = jid.split("@")[0];
+      const phoneJid = await resolvePhoneJid(socket, msg);
+      if (!phoneJid) {
+        console.error(`[wa-agent] Não consegui resolver o telefone de ${jid} (mensagem ${msg.key.id}) -- ignorada.`);
+        continue;
+      }
+
+      const phone = phoneJid.split("@")[0];
       const direction = msg.key.fromMe ? "OUT" : "IN";
 
       await postInbound({ phone, whatsappMessageId: msg.key.id, text, direction });
