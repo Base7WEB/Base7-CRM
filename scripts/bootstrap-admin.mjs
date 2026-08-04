@@ -31,6 +31,7 @@ const supabase = createClient(
 
 const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
   data: { full_name: fullName, role: "ADMIN" },
+  redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/set-password`,
 });
 
 if (error) {

@@ -42,6 +42,7 @@ export async function POST(request: Request) {
   const supabaseAdmin = createAdminClient();
   const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName, role },
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/set-password`,
   });
 
   if (error) {

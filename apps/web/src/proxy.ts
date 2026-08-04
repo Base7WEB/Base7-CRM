@@ -33,10 +33,11 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isLoginRoute = pathname.startsWith("/login");
+  const isAuthRoute = pathname.startsWith("/auth");
   const isPublicApiRoute =
     pathname.startsWith("/api/agent") || pathname.startsWith("/api/cron");
 
-  if (!user && !isLoginRoute && !isPublicApiRoute) {
+  if (!user && !isLoginRoute && !isAuthRoute && !isPublicApiRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
