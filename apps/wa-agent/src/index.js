@@ -21,6 +21,41 @@ if (!API_BASE_URL || !AGENT_TOKEN) {
   process.exit(1);
 }
 
+function extractText(message) {
+  if (!message) return null;
+  return (
+    message.conversation ??
+    message.extendedTextMessage?.text ??
+    message.imageMessage?.caption ??
+    message.videoMessage?.caption ??
+    message.documentMessage?.caption ??
+    message.buttonsResponseMessage?.selectedDisplayText ??
+    message.listResponseMessage?.title ??
+    null
+  );
+}
+
+async function postInbound({ phone, whatsappMessageId, text, direction }) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/agent/whatsapp/inbound`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${AGENT_TOKEN}`,
+      },
+      body: JSON.stringify({ phone, whatsapp_message_id: whatsappMessageId, body: text, direction }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error(`[wa-agent] Falha ao enviar mensagem ${whatsappMessageId} ao CRM: ${res.status} ${errBody}`);
+      return;
+    }
+    console.log(`[wa-agent] Mensagem ${direction === "OUT" ? "enviada" : "recebida"} registrada no CRM (${phone}).`);
+  } catch (err) {
+    console.error(`[wa-agent] Erro de rede registrando mensagem ${whatsappMessageId}:`, err.message);
+  }
+}
+
 async function postStatus(status) {
   try {
     const res = await fetch(`${API_BASE_URL}/api/agent/whatsapp/status`, {
@@ -53,6 +88,23 @@ async function connect() {
   });
 
   socket.ev.on("creds.update", saveCreds);
+
+  socket.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify" && type !== "append") return;
+
+    for (const msg of messages) {
+      const jid = msg.key?.remoteJid;
+      if (!jid || jid.endsWith("@g.us") || jid === "status@broadcast") continue;
+
+      const text = extractText(msg.message);
+      if (!text || !msg.key?.id) continue;
+
+      const phone = jid.split("@")[0];
+      const direction = msg.key.fromMe ? "OUT" : "IN";
+
+      await postInbound({ phone, whatsappMessageId: msg.key.id, text, direction });
+    }
+  });
 
   socket.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
