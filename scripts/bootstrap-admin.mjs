@@ -17,6 +17,7 @@ const env = Object.fromEntries(
 
 const email = process.argv[2];
 const fullName = process.argv[3] ?? email;
+const siteUrl = process.argv[4] ?? env.NEXT_PUBLIC_SITE_URL;
 
 if (!email) {
   console.error("uso: node scripts/bootstrap-admin.mjs <email> [nome]");
@@ -31,7 +32,7 @@ const supabase = createClient(
 
 const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
   data: { full_name: fullName, role: "ADMIN" },
-  redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/set-password`,
+  redirectTo: `${siteUrl}/auth/set-password`,
 });
 
 if (error) {

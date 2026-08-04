@@ -27,13 +27,22 @@ export default async function HomePage() {
         </form>
       </div>
 
-      {profile.role === "ADMIN" && (
-        <div className="mt-8 rounded-lg border border-neutral-200 p-4">
-          <Link href="/admin/usuarios" className="text-sm font-medium text-neutral-900 underline">
+      <div className="mt-8 flex gap-3">
+        <Link
+          href="/leads"
+          className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+        >
+          {profile.role === "ADMIN" ? "Todos os leads" : "Meus leads"}
+        </Link>
+        {profile.role === "ADMIN" && (
+          <Link
+            href="/admin/usuarios"
+            className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+          >
             Gerenciar consultores
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
