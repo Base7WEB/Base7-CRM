@@ -14,7 +14,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("*, whatsapp_sessions(status, last_connected_at, last_disconnected_at)")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

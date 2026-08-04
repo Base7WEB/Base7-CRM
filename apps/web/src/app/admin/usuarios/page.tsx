@@ -4,11 +4,26 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import type { Profile } from "@/lib/auth";
 
+type WhatsAppSession = {
+  status: "DISCONNECTED" | "QR_PENDING" | "CONNECTED";
+  last_connected_at: string | null;
+  last_disconnected_at: string | null;
+};
+
+type UserRow = Profile & { whatsapp_sessions: WhatsAppSession | null };
+
+const STATUS_BADGE: Record<WhatsAppSession["status"], string> = {
+  CONNECTED: "🟢 Conectado",
+  QR_PENDING: "🟡 Aguardando QR",
+  DISCONNECTED: "🔴 Desconectado",
+};
+
 export default function UsuariosPage() {
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [newTokenFor, setNewTokenFor] = useState<{ userId: string; token: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,6 +78,23 @@ export default function UsuariosPage() {
     await load();
   }
 
+  async function generateAgentToken(userId: string) {
+    setError(null);
+    setNewTokenFor(null);
+    const res = await fetch("/api/admin/whatsapp-agents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile_id: userId }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error ?? "Erro ao gerar token.");
+      return;
+    }
+    setNewTokenFor({ userId, token: json.token });
+    await load();
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
       <Link href="/" className="text-sm text-neutral-500 underline">
@@ -107,20 +139,46 @@ export default function UsuariosPage() {
           <p className="p-4 text-sm text-neutral-500">Nenhum usuário ainda.</p>
         ) : (
           users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between p-4">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">{u.full_name}</p>
-                <p className="text-xs text-neutral-500">
-                  {u.email} · {u.role === "ADMIN" ? "Admin" : "Consultor"} ·{" "}
-                  {u.is_active ? "Ativo" : "Inativo"}
-                </p>
+            <div key={u.id} className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">{u.full_name}</p>
+                  <p className="text-xs text-neutral-500">
+                    {u.email} · {u.role === "ADMIN" ? "Admin" : "Consultor"} ·{" "}
+                    {u.is_active ? "Ativo" : "Inativo"} ·{" "}
+                    {STATUS_BADGE[u.whatsapp_sessions?.status ?? "DISCONNECTED"]}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => generateAgentToken(u.id)}
+                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
+                  >
+                    Gerar token WhatsApp
+                  </button>
+                  <button
+                    onClick={() => toggleActive(u.id, !u.is_active)}
+                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
+                  >
+                    {u.is_active ? "Desativar" : "Reativar"}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => toggleActive(u.id, !u.is_active)}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
-              >
-                {u.is_active ? "Desativar" : "Reativar"}
-              </button>
+
+              {newTokenFor?.userId === u.id && (
+                <div className="mt-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+                  <p className="font-medium">
+                    Token gerado — copie agora, ele não será mostrado de novo:
+                  </p>
+                  <code className="mt-1 block break-all rounded bg-white px-2 py-1 font-mono">
+                    {newTokenFor.token}
+                  </code>
+                  <p className="mt-1">
+                    Configure no <code>.env</code> do agente local (<code>apps/wa-agent</code>) como{" "}
+                    <code>CRM_AGENT_TOKEN</code>.
+                  </p>
+                </div>
+              )}
             </div>
           ))
         )}

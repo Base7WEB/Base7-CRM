@@ -77,6 +77,38 @@ export type Database = {
           },
         ]
       }
+      consultant_agent_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          revoked_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          revoked_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          revoked_at?: string | null
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_agent_tokens_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_events: {
         Row: {
           actor_id: string | null
@@ -213,6 +245,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      whatsapp_sessions: {
+        Row: {
+          last_connected_at: string | null
+          last_disconnected_at: string | null
+          profile_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          last_connected_at?: string | null
+          last_disconnected_at?: string | null
+          profile_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          last_connected_at?: string | null
+          last_disconnected_at?: string | null
+          profile_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_sessions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
