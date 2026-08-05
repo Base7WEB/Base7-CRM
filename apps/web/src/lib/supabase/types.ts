@@ -152,6 +152,13 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_parados"
+            referencedColumns: ["lead_id"]
+          },
         ]
       }
       leads: {
@@ -304,6 +311,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_parados"
+            referencedColumns: ["lead_id"]
+          },
+          {
             foreignKeyName: "messages_sent_by_fkey"
             columns: ["sent_by"]
             isOneToOne: false
@@ -359,6 +373,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leads"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outbox_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_parados"
+            referencedColumns: ["lead_id"]
           },
           {
             foreignKeyName: "outbox_messages_profile_id_fkey"
@@ -433,7 +454,26 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      leads_parados: {
+        Row: {
+          empresa: string | null
+          lead_id: string | null
+          motivo: string | null
+          responsavel_id: string | null
+          status: string | null
+          ultima_direcao: string | null
+          ultima_mensagem_em: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       is_active_user: { Args: never; Returns: boolean }

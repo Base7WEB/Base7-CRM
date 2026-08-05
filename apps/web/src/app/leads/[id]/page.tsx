@@ -7,6 +7,7 @@ import { scoreLead } from "@/lib/scoring";
 import type { Classificacao } from "@/lib/scoring";
 import { AssignResponsavel } from "./assign-responsavel";
 import { ConversationView } from "./conversation-view";
+import { StatusSelect } from "./status-select";
 
 const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
   QUENTE: "bg-red-100 text-red-800 border-red-300",
@@ -89,9 +90,13 @@ export default async function LeadDetailPage({
           <p className="text-sm text-neutral-500">{lead.telefone}</p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <span className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700">
-            {lead.status}
-          </span>
+          {canSend ? (
+            <StatusSelect leadId={lead.id} currentStatus={lead.status} />
+          ) : (
+            <span className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700">
+              {lead.status}
+            </span>
+          )}
           <span className={`rounded-full border px-3 py-1 text-xs font-medium ${CLASSIFICACAO_BADGE[classificacao]}`}>
             {CLASSIFICACAO_LABEL[classificacao]} · {lead.score}/100
           </span>
