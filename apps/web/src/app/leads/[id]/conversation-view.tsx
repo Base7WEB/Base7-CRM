@@ -19,20 +19,45 @@ export function ConversationView({
 
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`messages-lead-${leadId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `lead_id=eq.${leadId}` },
-        (payload) => {
-          const row = payload.new as Message;
-          setMessages((prev) => [...prev, { direction: row.direction, body: row.body, created_at: row.created_at }]);
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    async function setup() {
+      // A avaliacao de RLS no Realtime usa o token de acesso do usuario --
+      // sem anexar explicitamente, a inscricao pode se autenticar como
+      // anon antes da sessao (via cookies) terminar de carregar, e a
+      // policy de messages_select bloqueia os eventos em silencio (sem
+      // erro nenhum, so nunca chega nada).
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+
+      channel = supabase
+        .channel(`messages-lead-${leadId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages", filter: `lead_id=eq.${leadId}` },
+          (payload) => {
+            const row = payload.new as Message;
+            setMessages((prev) => [...prev, { direction: row.direction, body: row.body, created_at: row.created_at }]);
+          }
+        )
+        .subscribe((status, err) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.error("[wa-realtime] falha na inscrição de mensagens:", status, err);
+          }
+        });
+    }
+
+    setup();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [leadId]);
 
