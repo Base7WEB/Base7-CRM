@@ -176,7 +176,7 @@ export function TagsTasksPanel({
               type="date"
               value={newTaskPrazo}
               onChange={(e) => setNewTaskPrazo(e.target.value)}
-              className="w-40 shrink-0"
+              className="max-w-[160px] shrink-0"
             />
             <button type="submit" className="btn-outline btn-sm shrink-0">
               Adicionar

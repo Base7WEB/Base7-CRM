@@ -22,6 +22,16 @@ export const CATEGORY_LABEL: Record<AuditCategory, string> = {
   outro: "Sistema",
 };
 
+export const CATEGORY_FILTERS: { value: string; label: string; categorias: AuditCategory[] }[] = [
+  { value: "usuario", label: "Usuário", categorias: ["usuario"] },
+  { value: "lead", label: "Lead", categorias: ["lead"] },
+  { value: "whatsapp", label: "WhatsApp", categorias: ["whatsapp_ok", "whatsapp_alerta"] },
+  { value: "campanha", label: "Campanha", categorias: ["campanha"] },
+  { value: "config", label: "Configuração", categorias: ["config"] },
+  { value: "scraper", label: "Scraper", categorias: ["scraper"] },
+  { value: "outro", label: "Sistema", categorias: ["outro"] },
+];
+
 interface AuditLogRow {
   action: string;
   metadata: unknown;

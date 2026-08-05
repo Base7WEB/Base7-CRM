@@ -113,7 +113,7 @@ function MetricsSection({ metrics }: { metrics: DashboardMetrics }) {
           <div className="box-header">
             <h2>Funil</h2>
           </div>
-          {STATUS_ORDER.filter((s) => metrics.porStatus[s]).map((status) => (
+          {STATUS_ORDER.map((status) => (
             <div key={status} className="funil-row">
               <span className="funil-label">{STATUS_LABEL[status]}</span>
               <div className="funil-bar-wrap">
