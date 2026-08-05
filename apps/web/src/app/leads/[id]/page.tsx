@@ -5,15 +5,16 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { scoreLead } from "@/lib/scoring";
 import type { Classificacao } from "@/lib/scoring";
+import { AppShell } from "@/components/app-shell";
 import { AssignResponsavel } from "./assign-responsavel";
 import { ConversationView } from "./conversation-view";
 import { StatusSelect } from "./status-select";
 
 const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
-  QUENTE: "bg-red-100 text-red-800 border-red-300",
-  QUALIFICADO: "bg-orange-100 text-orange-800 border-orange-300",
-  MORNO: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  FRIO: "bg-blue-100 text-blue-800 border-blue-300",
+  QUENTE: "badge-hot",
+  QUALIFICADO: "badge-qualified",
+  MORNO: "badge-medium",
+  FRIO: "badge-cold",
 };
 
 const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
@@ -79,61 +80,63 @@ export default async function LeadDetailPage({
   const canSend = profile.role === "ADMIN" || lead.responsavel_id === profile.id;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/leads" className="text-sm text-neutral-500 underline">
+    <AppShell profile={profile}>
+      <Link href="/leads" className="mb-2 inline-block text-sm text-(--muted) hover:text-(--cyan)">
         ← Voltar
       </Link>
 
-      <div className="mt-2 flex items-start justify-between">
+      <div className="topbar">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">{lead.empresa}</h1>
-          <p className="text-sm text-neutral-500">{lead.telefone}</p>
+          <h1>{lead.empresa}</h1>
+          <p>{lead.telefone}</p>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-2">
           {canSend ? (
             <StatusSelect leadId={lead.id} currentStatus={lead.status} />
           ) : (
-            <span className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700">
-              {lead.status}
-            </span>
+            <span className="badge badge-status">{lead.status}</span>
           )}
-          <span className={`rounded-full border px-3 py-1 text-xs font-medium ${CLASSIFICACAO_BADGE[classificacao]}`}>
+          <span className={`badge ${CLASSIFICACAO_BADGE[classificacao]}`}>
             {CLASSIFICACAO_LABEL[classificacao]} · {lead.score}/100
           </span>
         </div>
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-neutral-200 p-4 text-sm">
-        <div>
-          <dt className="text-neutral-500">Contato</dt>
-          <dd className="text-neutral-900">{lead.contato_nome || "—"}</dd>
+      <div className="box">
+        <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Contato</p>
+            <p className="mt-1">{lead.contato_nome || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Nicho</p>
+            <p className="mt-1">{lead.nicho || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Origem</p>
+            <p className="mt-1 capitalize">{lead.origem}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Última interação</p>
+            <p className="mt-1">
+              {lead.last_interaction_at ? new Date(lead.last_interaction_at).toLocaleString("pt-BR") : "—"}
+            </p>
+          </div>
         </div>
-        <div>
-          <dt className="text-neutral-500">Nicho</dt>
-          <dd className="text-neutral-900">{lead.nicho || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-neutral-500">Origem</dt>
-          <dd className="text-neutral-900">{lead.origem}</dd>
-        </div>
-        <div>
-          <dt className="text-neutral-500">Última interação</dt>
-          <dd className="text-neutral-900">
-            {lead.last_interaction_at ? new Date(lead.last_interaction_at).toLocaleString("pt-BR") : "—"}
-          </dd>
-        </div>
-      </dl>
+      </div>
 
-      <div className="mt-4 rounded-lg border border-neutral-200 p-4">
-        <p className="text-xs font-medium uppercase text-neutral-500">Por que essa classificação</p>
-        <div className="mt-2 divide-y divide-neutral-100">
+      <div className="box">
+        <div className="box-header">
+          <h2>Por que essa classificação</h2>
+        </div>
+        <div className="divide-y divide-(--border)">
           {breakdown.map((item) => (
-            <div key={item.criterio} className="flex items-center justify-between py-1.5 text-sm">
+            <div key={item.criterio} className="flex items-center justify-between py-2 text-sm">
               <div>
-                <p className="text-neutral-900">{item.criterio}</p>
-                <p className="text-xs text-neutral-500">{item.motivo}</p>
+                <p>{item.criterio}</p>
+                <p className="text-xs text-(--muted)">{item.motivo}</p>
               </div>
-              <span className="text-xs font-medium text-neutral-700">
+              <span className="font-mono text-xs font-semibold text-(--cyan)">
                 +{item.pontos}/{item.maximo}
               </span>
             </div>
@@ -141,18 +144,18 @@ export default async function LeadDetailPage({
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-neutral-200 p-4">
-        <p className="text-xs font-medium uppercase text-neutral-500">Responsável</p>
+      <div className="box">
+        <div className="box-header">
+          <h2>Responsável</h2>
+        </div>
         {profile.role === "ADMIN" ? (
-          <div className="mt-2">
-            <AssignResponsavel leadId={lead.id} currentId={lead.responsavel_id} options={consultores} />
-          </div>
+          <AssignResponsavel leadId={lead.id} currentId={lead.responsavel_id} options={consultores} />
         ) : (
-          <p className="mt-1 text-sm text-neutral-900">Você</p>
+          <p className="text-sm">Você</p>
         )}
       </div>
 
       <ConversationView leadId={lead.id} initialMessages={messages ?? []} canSend={canSend} />
-    </div>
+    </AppShell>
   );
 }

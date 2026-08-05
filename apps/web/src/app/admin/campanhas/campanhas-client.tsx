@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 
 type Campaign = {
   id: string;
@@ -17,6 +16,14 @@ const STATUS_LEAD_OPTIONS = [
   { value: "CONTATO_REALIZADO", label: "Contato realizado" },
   { value: "SEM_RESPOSTA", label: "Sem resposta" },
 ];
+
+const STATUS_CAMPANHA_BADGE: Record<string, string> = {
+  RASCUNHO: "badge-status",
+  EM_EXECUCAO: "badge-success",
+  PAUSADA: "badge-medium",
+  FINALIZADA: "badge-cold",
+  CANCELADA: "badge-hot",
+};
 
 export function CampanhasClient() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -83,37 +90,30 @@ export function CampanhasClient() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/" className="text-sm text-neutral-500 underline">
-        ← Voltar
-      </Link>
-      <h1 className="mt-2 text-lg font-semibold text-neutral-900">Campanhas</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Só uma campanha pode estar em execução por vez. Mensagens são espaçadas aleatoriamente por consultor pra
-        reduzir risco de bloqueio no WhatsApp.
-      </p>
-
-      <form
-        action={handleCreate}
-        className="mt-6 space-y-3 rounded-lg border border-neutral-200 p-4"
-      >
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-neutral-600">Nome</label>
-          <input name="nome" required className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm" />
+    <>
+      <div className="topbar">
+        <div>
+          <h1>Campanhas</h1>
+          <p>
+            Só uma campanha pode estar em execução por vez. Mensagens são espaçadas aleatoriamente por consultor pra
+            reduzir risco de bloqueio no WhatsApp.
+          </p>
         </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-neutral-600">Mensagem (use {"{empresa}"} como variável)</label>
-          <textarea
-            name="corpo_mensagem"
-            required
-            rows={3}
-            className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-          />
+      </div>
+
+      <form action={handleCreate} className="box">
+        <div className="mb-3">
+          <label>Nome</label>
+          <input name="nome" required />
+        </div>
+        <div className="mb-3">
+          <label>Mensagem (use {"{empresa}"} como variável)</label>
+          <textarea name="corpo_mensagem" required rows={3} />
         </div>
         <div className="flex flex-wrap gap-3">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-600">Enviar para leads com status</label>
-            <select name="status_filtro" className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm">
+          <div className="min-w-[200px]">
+            <label>Enviar para leads com status</label>
+            <select name="status_filtro">
               {STATUS_LEAD_OPTIONS.map((s) => (
                 <option key={s.value} value={s.value}>
                   {s.label}
@@ -121,77 +121,57 @@ export function CampanhasClient() {
               ))}
             </select>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-600">Intervalo mín. (s)</label>
-            <input
-              type="number"
-              name="intervalo_min_seg"
-              defaultValue={30}
-              min={15}
-              className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-            />
+          <div className="w-28">
+            <label>Intervalo mín. (s)</label>
+            <input type="number" name="intervalo_min_seg" defaultValue={30} min={15} />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-600">Intervalo máx. (s)</label>
-            <input
-              type="number"
-              name="intervalo_max_seg"
-              defaultValue={90}
-              min={15}
-              className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-            />
+          <div className="w-28">
+            <label>Intervalo máx. (s)</label>
+            <input type="number" name="intervalo_max_seg" defaultValue={90} min={15} />
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={creating}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={creating} className="btn mt-2">
+          {creating && <span className="loader" />}
           {creating ? "Criando..." : "Criar campanha"}
         </button>
       </form>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-(--danger)">{error}</p>}
 
-      <div className="mt-6 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+      <div className="box">
         {loading ? (
-          <p className="p-4 text-sm text-neutral-500">Carregando...</p>
+          <p className="empty">Carregando...</p>
         ) : campaigns.length === 0 ? (
-          <p className="p-4 text-sm text-neutral-500">Nenhuma campanha ainda.</p>
+          <p className="empty">Nenhuma campanha ainda.</p>
         ) : (
-          campaigns.map((c) => (
-            <div key={c.id} className="p-4">
-              <div className="flex items-center justify-between">
+          <div className="divide-y divide-(--border)">
+            {campaigns.map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">{c.nome}</p>
-                  <p className="text-xs text-neutral-500">
-                    {c.status} · {c.counts.total} leads · {c.counts.enviado} enviados · {c.counts.falhou} falharam ·{" "}
+                  <p className="font-semibold text-white">{c.nome}</p>
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-(--muted)">
+                    <span className={`badge ${STATUS_CAMPANHA_BADGE[c.status] ?? "badge-status"}`}>{c.status}</span>
+                    {c.counts.total} leads · {c.counts.enviado} enviados · {c.counts.falhou} falharam ·{" "}
                     {c.counts.pendente} pendentes
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex shrink-0 gap-2">
                   {(c.status === "RASCUNHO" || c.status === "PAUSADA") && (
-                    <button
-                      onClick={() => handleStart(c.id)}
-                      className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
-                    >
+                    <button onClick={() => handleStart(c.id)} className="btn-outline btn-sm">
                       Iniciar
                     </button>
                   )}
                   {(c.status === "EM_EXECUCAO" || c.status === "RASCUNHO") && (
-                    <button
-                      onClick={() => handleCancel(c.id)}
-                      className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50"
-                    >
+                    <button onClick={() => handleCancel(c.id)} className="btn-ghost btn-sm">
                       Cancelar
                     </button>
                   )}
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

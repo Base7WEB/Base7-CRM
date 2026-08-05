@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Classificacao } from "@/lib/scoring";
+import { AppShell } from "@/components/app-shell";
 
 const STATUS_LABEL: Record<string, string> = {
   NOVO: "Novo",
@@ -16,6 +17,13 @@ const STATUS_LABEL: Record<string, string> = {
   PERDIDO: "Perdido",
   SEM_INTERESSE: "Sem interesse",
   SEM_RESPOSTA: "Sem resposta",
+};
+
+const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
+  QUENTE: "badge-hot",
+  QUALIFICADO: "badge-qualified",
+  MORNO: "badge-medium",
+  FRIO: "badge-cold",
 };
 
 const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
@@ -43,60 +51,55 @@ export default async function LeadsPage() {
   const responsavelById = new Map((responsaveis ?? []).map((r) => [r.id, r.full_name]));
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="flex items-center justify-between">
+    <AppShell profile={profile}>
+      <div className="topbar">
         <div>
-          <Link href="/" className="text-sm text-neutral-500 underline">
-            ← Voltar
-          </Link>
-          <h1 className="mt-2 text-lg font-semibold text-neutral-900">
-            {profile.role === "ADMIN" ? "Todos os leads" : "Meus leads"}
-          </h1>
+          <h1>{profile.role === "ADMIN" ? "Todos os leads" : "Meus leads"}</h1>
+          <p>{leads?.length ?? 0} leads · ordenado por score</p>
         </div>
-        <p className="text-sm text-neutral-500">{leads?.length ?? 0} leads</p>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-neutral-200">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-left text-xs font-medium uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-2">Empresa</th>
-              <th className="px-4 py-2">Telefone</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Classificação</th>
-              <th className="px-4 py-2">Responsável</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-200">
-            {(leads ?? []).map((lead) => (
-              <tr key={lead.id} className="hover:bg-neutral-50">
-                <td className="px-4 py-2">
-                  <Link href={`/leads/${lead.id}`} className="font-medium text-neutral-900 underline">
-                    {lead.empresa}
-                  </Link>
-                </td>
-                <td className="px-4 py-2 text-neutral-600">{lead.telefone}</td>
-                <td className="px-4 py-2 text-neutral-600">{STATUS_LABEL[lead.status] ?? lead.status}</td>
-                <td className="px-4 py-2 text-neutral-600">
-                  {CLASSIFICACAO_LABEL[lead.classificacao as Classificacao]} · {lead.score}
-                </td>
-                <td className="px-4 py-2 text-neutral-600">
-                  {lead.responsavel_id
-                    ? responsavelById.get(lead.responsavel_id) ?? "—"
-                    : lead.responsavel_legado_texto || "Não atribuído"}
-                </td>
-              </tr>
-            ))}
-            {(leads ?? []).length === 0 && (
+      <div className="box">
+        <div className="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
-                  Nenhum lead ainda.
-                </td>
+                <th>Empresa</th>
+                <th>Telefone</th>
+                <th>Status</th>
+                <th>Classificação</th>
+                <th>Responsável</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {(leads ?? []).map((lead) => (
+                <tr key={lead.id}>
+                  <td>
+                    <Link href={`/leads/${lead.id}`} className="font-semibold text-white hover:text-(--cyan)">
+                      {lead.empresa}
+                    </Link>
+                  </td>
+                  <td className="text-(--text)">{lead.telefone}</td>
+                  <td className="text-(--text)">
+                    <span className="badge badge-status">{STATUS_LABEL[lead.status] ?? lead.status}</span>
+                  </td>
+                  <td>
+                    <span className={`badge ${CLASSIFICACAO_BADGE[lead.classificacao as Classificacao]}`}>
+                      {CLASSIFICACAO_LABEL[lead.classificacao as Classificacao]} · {lead.score}
+                    </span>
+                  </td>
+                  <td className="text-(--text)">
+                    {lead.responsavel_id
+                      ? responsavelById.get(lead.responsavel_id) ?? "—"
+                      : lead.responsavel_legado_texto || "Não atribuído"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {(leads ?? []).length === 0 && <p className="empty">Nenhum lead ainda.</p>}
+        </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

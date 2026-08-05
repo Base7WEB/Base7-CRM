@@ -62,15 +62,19 @@ export function ConversationView({
   }, [leadId]);
 
   return (
-    <div className="mt-4 rounded-lg border border-neutral-200 p-4">
-      <p className="text-xs font-medium uppercase text-neutral-500">Conversa</p>
-      <div className="mt-2 max-h-80 space-y-2 overflow-y-auto">
-        {messages.length === 0 && <p className="text-sm text-neutral-500">Nenhuma mensagem ainda.</p>}
+    <div className="box">
+      <div className="box-header">
+        <h2>Conversa</h2>
+      </div>
+      <div className="max-h-80 space-y-2 overflow-y-auto">
+        {messages.length === 0 && <p className="empty">Nenhuma mensagem ainda.</p>}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[75%] rounded-lg px-3 py-1.5 text-sm ${
-                m.direction === "OUT" ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"
+              className={`max-w-[75%] rounded-xl px-3 py-2 text-sm ${
+                m.direction === "OUT"
+                  ? "bg-gradient-to-br from-(--blue) to-sky-500 text-white"
+                  : "bg-(--bg3) text-(--text)"
               }`}
             >
               {m.body}
@@ -79,11 +83,11 @@ export function ConversationView({
         ))}
       </div>
       {canSend ? (
-        <div className="mt-3 border-t border-neutral-100 pt-3">
+        <div className="mt-3 border-t border-(--border) pt-3">
           <SendMessageForm leadId={leadId} />
         </div>
       ) : (
-        <p className="mt-3 text-xs text-neutral-500">Só o responsável ou o admin podem enviar mensagens.</p>
+        <p className="mt-3 text-xs text-(--muted)">Só o responsável ou o admin podem enviar mensagens.</p>
       )}
     </div>
   );

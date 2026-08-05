@@ -45,7 +45,7 @@ export function StatusSelect({ leadId, currentStatus }: { leadId: string; curren
         defaultValue={currentStatus}
         onChange={handleChange}
         disabled={saving}
-        className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700"
+        className="!py-1.5 !text-xs font-medium"
       >
         {STATUS_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -53,7 +53,7 @@ export function StatusSelect({ leadId, currentStatus }: { leadId: string; curren
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-(--danger)">{error}</p>}
     </div>
   );
 }

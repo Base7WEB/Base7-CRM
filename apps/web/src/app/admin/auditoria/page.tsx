@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { AppShell } from "@/components/app-shell";
 
 export default async function AuditoriaPage() {
   let profile;
@@ -24,33 +24,38 @@ export default async function AuditoriaPage() {
   const actorById = new Map((actors ?? []).map((a) => [a.id, a.full_name]));
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <Link href="/" className="text-sm text-neutral-500 underline">
-        ← Voltar
-      </Link>
-      <h1 className="mt-2 text-lg font-semibold text-neutral-900">Auditoria</h1>
-      <p className="mt-1 text-sm text-neutral-500">Últimas 100 ações administrativas e eventos de sistema.</p>
-
-      <div className="mt-6 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-        {(logs ?? []).length === 0 && <p className="p-4 text-sm text-neutral-500">Nenhum registro ainda.</p>}
-        {(logs ?? []).map((log) => (
-          <div key={log.id} className="p-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-neutral-900">{log.action}</span>
-              <span className="text-xs text-neutral-500">{new Date(log.created_at).toLocaleString("pt-BR")}</span>
-            </div>
-            <p className="text-xs text-neutral-500">
-              {log.actor_id ? actorById.get(log.actor_id) ?? "usuário removido" : "sistema"}
-              {log.target_table && ` · ${log.target_table}`}
-            </p>
-            {log.metadata && Object.keys(log.metadata as object).length > 0 && (
-              <pre className="mt-1 overflow-x-auto rounded bg-neutral-50 p-2 text-xs text-neutral-600">
-                {JSON.stringify(log.metadata, null, 2)}
-              </pre>
-            )}
-          </div>
-        ))}
+    <AppShell profile={profile}>
+      <div className="topbar">
+        <div>
+          <h1>Auditoria</h1>
+          <p>Últimas 100 ações administrativas e eventos de sistema.</p>
+        </div>
       </div>
-    </div>
+
+      <div className="box">
+        {(logs ?? []).length === 0 && <p className="empty">Nenhum registro ainda.</p>}
+        <div className="divide-y divide-(--border)">
+          {(logs ?? []).map((log) => (
+            <div key={log.id} className="py-3 text-sm first:pt-0 last:pb-0">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold text-white">{log.action}</span>
+                <span className="shrink-0 text-xs text-(--muted)">
+                  {new Date(log.created_at).toLocaleString("pt-BR")}
+                </span>
+              </div>
+              <p className="text-xs text-(--muted)">
+                {log.actor_id ? actorById.get(log.actor_id) ?? "usuário removido" : "sistema"}
+                {log.target_table && ` · ${log.target_table}`}
+              </p>
+              {log.metadata && Object.keys(log.metadata as object).length > 0 && (
+                <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/30 p-2 text-xs text-(--text)">
+                  {JSON.stringify(log.metadata, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </AppShell>
   );
 }

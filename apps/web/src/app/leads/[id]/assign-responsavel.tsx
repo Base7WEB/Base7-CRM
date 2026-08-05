@@ -37,12 +37,7 @@ export function AssignResponsavel({
 
   return (
     <div>
-      <select
-        defaultValue={currentId ?? ""}
-        onChange={handleChange}
-        disabled={saving}
-        className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-      >
+      <select defaultValue={currentId ?? ""} onChange={handleChange} disabled={saving} className="max-w-xs">
         <option value="">Não atribuído</option>
         {options.map((o) => (
           <option key={o.id} value={o.id}>
@@ -50,7 +45,7 @@ export function AssignResponsavel({
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-(--danger)">{error}</p>}
     </div>
   );
 }

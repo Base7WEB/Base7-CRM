@@ -42,23 +42,19 @@ export function SendMessageForm({ leadId }: { leadId: string }) {
         }}
         placeholder="Escreva a mensagem..."
         rows={3}
-        className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
       />
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-neutral-500">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-(--muted)">
           {queued
             ? "Na fila — aparece aqui assim que o agente WhatsApp enviar de verdade."
             : "Entra na fila e é enviada pelo agente WhatsApp do responsável assim que ele estiver online."}
         </p>
-        <button
-          type="submit"
-          disabled={sending || !text.trim()}
-          className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={sending || !text.trim()} className="btn shrink-0">
+          {sending && <span className="loader" />}
           {sending ? "Enviando..." : "Enviar"}
         </button>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-(--danger)">{error}</p>}
     </form>
   );
 }
