@@ -13,6 +13,12 @@ export async function signIn(_prevState: SignInState, formData: FormData): Promi
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    if (error.code === "over_request_rate_limit" || error.status === 429) {
+      return { error: "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo." };
+    }
+    if (error.code === "email_not_confirmed") {
+      return { error: "E-mail ainda não confirmado. Verifique sua caixa de entrada." };
+    }
     return { error: "E-mail ou senha inválidos." };
   }
 

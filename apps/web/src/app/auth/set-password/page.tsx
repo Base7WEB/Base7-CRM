@@ -22,6 +22,12 @@ export default function SetPasswordPage() {
       const type = params.get("type");
 
       if (tokenHash && type) {
+        // Se este navegador já tinha uma sessão logada (ex: admin abrindo o
+        // link de convite de outra pessoa na mesma aba), garante que o token
+        // do convite nunca acaba autenticando/alterando a senha da conta
+        // errada -- sempre parte de uma sessão limpa antes de trocar o token.
+        await supabase.auth.signOut();
+
         const { error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type as "invite" | "recovery" | "email",
