@@ -1,0 +1,15 @@
+name: Campaign follow-ups
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  followups:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama o endpoint de follow-ups de campanha do CRM
+        run: |
+          curl -sf -X GET "${{ vars.CRM_BASE_URL }}/api/cron/campaign-followups" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -47,9 +47,28 @@ export async function PATCH(
   if (item.campaign_id && item.lead_id) {
     await supabaseAdmin
       .from("campaign_leads")
-      .update({ status: status === "SENT" ? "ENVIADO" : "FALHOU", updated_at: new Date().toISOString() })
+      .update({
+        status: status === "SENT" ? "ENVIADO" : "FALHOU",
+        ultimo_envio_em: status === "SENT" ? new Date().toISOString() : undefined,
+        updated_at: new Date().toISOString(),
+      })
       .eq("campaign_id", item.campaign_id)
       .eq("lead_id", item.lead_id);
+
+    // Fila sem mais nada pendente -- campanha terminou (mesma regra do
+    // worker antigo: sem itens "pendente"/"enfileirado", finaliza).
+    const { count: restantes } = await supabaseAdmin
+      .from("campaign_leads")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", item.campaign_id)
+      .in("status", ["PENDENTE", "ENFILEIRADO"]);
+    if ((restantes ?? 0) === 0) {
+      await supabaseAdmin
+        .from("campaigns")
+        .update({ status: "FINALIZADA" })
+        .eq("id", item.campaign_id)
+        .eq("status", "EM_EXECUCAO");
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -6,12 +6,55 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { computeDashboardMetrics, type Period } from "@/lib/dashboard";
 import type { DashboardMetrics } from "@/lib/dashboard";
 import { AppShell } from "@/components/app-shell";
+import type { Classificacao } from "@/lib/scoring";
 
 const PERIOD_LABEL: Record<Period, string> = {
   hoje: "Hoje",
   "7d": "7 dias",
   "30d": "30 dias",
   tudo: "Tudo",
+};
+
+const STATUS_ORDER = [
+  "NOVO",
+  "CONTATO_REALIZADO",
+  "INTERAGINDO",
+  "QUALIFICADO",
+  "REUNIAO_AGENDADA",
+  "PROPOSTA_ENVIADA",
+  "NEGOCIACAO",
+  "GANHO",
+  "PERDIDO",
+  "SEM_INTERESSE",
+  "SEM_RESPOSTA",
+];
+
+const STATUS_LABEL: Record<string, string> = {
+  NOVO: "Novo",
+  CONTATO_REALIZADO: "Contato realizado",
+  INTERAGINDO: "Interagindo",
+  QUALIFICADO: "Qualificado",
+  REUNIAO_AGENDADA: "Reunião agendada",
+  PROPOSTA_ENVIADA: "Proposta enviada",
+  NEGOCIACAO: "Negociação",
+  GANHO: "Ganho",
+  PERDIDO: "Perdido",
+  SEM_INTERESSE: "Sem interesse",
+  SEM_RESPOSTA: "Sem resposta",
+};
+
+const CLASSIFICACAO_ORDER: Classificacao[] = ["QUENTE", "QUALIFICADO", "MORNO", "FRIO"];
+const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
+  QUENTE: "🔥 Quente",
+  QUALIFICADO: "🟠 Qualificado",
+  MORNO: "🟡 Morno",
+  FRIO: "🔵 Frio",
+};
+const CLASSIFICACAO_BAR: Record<Classificacao, string> = {
+  QUENTE: "linear-gradient(90deg, #ef4444, #f87171)",
+  QUALIFICADO: "linear-gradient(90deg, #f59e0b, #fbbf24)",
+  MORNO: "linear-gradient(90deg, #2563eb, #60a5fa)",
+  FRIO: "linear-gradient(90deg, #475569, #94a3b8)",
 };
 
 function pct(n: number | null): string {
@@ -44,6 +87,9 @@ function StatCard({
 }
 
 function MetricsSection({ metrics }: { metrics: DashboardMetrics }) {
+  const maxStatus = Math.max(1, ...Object.values(metrics.porStatus));
+  const maxClassificacao = Math.max(1, ...Object.values(metrics.porClassificacao));
+
   return (
     <div>
       <div className="stats-grid">
@@ -56,6 +102,70 @@ function MetricsSection({ metrics }: { metrics: DashboardMetrics }) {
         <StatCard icon="🎯" colorClass="si-green" label="Taxa de fechamento" value={pct(metrics.taxaFechamento)} />
         <StatCard icon="⚠️" colorClass="si-yellow" label="Leads parados" value={metrics.leadsParados.length} />
       </div>
+
+      <div className="stats-grid !grid-cols-2">
+        <StatCard icon="📨" colorClass="si-cyan" label="Mensagens enviadas" value={metrics.mensagensEnviadas} />
+        <StatCard icon="📬" colorClass="si-purple" label="Mensagens recebidas" value={metrics.mensagensRecebidas} />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="box">
+          <div className="box-header">
+            <h2>Funil</h2>
+          </div>
+          {STATUS_ORDER.filter((s) => metrics.porStatus[s]).map((status) => (
+            <div key={status} className="funil-row">
+              <span className="funil-label">{STATUS_LABEL[status]}</span>
+              <div className="funil-bar-wrap">
+                <div
+                  className="funil-bar"
+                  style={{ width: `${((metrics.porStatus[status] ?? 0) / maxStatus) * 100}%` }}
+                />
+              </div>
+              <span className="funil-count">{metrics.porStatus[status] ?? 0}</span>
+            </div>
+          ))}
+          {metrics.totalLeads === 0 && <p className="empty">Sem leads ainda.</p>}
+        </div>
+
+        <div className="box">
+          <div className="box-header">
+            <h2>Classificação</h2>
+          </div>
+          {CLASSIFICACAO_ORDER.map((c) => (
+            <div key={c} className="funil-row">
+              <span className="funil-label">{CLASSIFICACAO_LABEL[c]}</span>
+              <div className="funil-bar-wrap">
+                <div
+                  className="funil-bar"
+                  style={{
+                    width: `${((metrics.porClassificacao[c] ?? 0) / maxClassificacao) * 100}%`,
+                    background: CLASSIFICACAO_BAR[c],
+                  }}
+                />
+              </div>
+              <span className="funil-count">{metrics.porClassificacao[c] ?? 0}</span>
+            </div>
+          ))}
+          {metrics.totalLeads === 0 && <p className="empty">Sem leads ainda.</p>}
+        </div>
+      </div>
+
+      {metrics.leadsRecentes.length > 0 && (
+        <div className="box">
+          <div className="box-header">
+            <h2>Leads recentes</h2>
+          </div>
+          {metrics.leadsRecentes.map((lead) => (
+            <Link key={lead.id} href={`/leads/${lead.id}`} className="recente-item hover:text-(--cyan)">
+              <span className="text-sm font-medium">{lead.empresa}</span>
+              <span className="text-xs text-(--muted)">
+                {STATUS_LABEL[lead.status] ?? lead.status} · {new Date(lead.created_at).toLocaleDateString("pt-BR")}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {metrics.leadsParados.length > 0 && (
         <div className="box border-(--warn)/30">

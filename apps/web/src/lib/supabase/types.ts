@@ -131,32 +131,76 @@ export type Database = {
           },
         ]
       }
+      campaign_followups: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          dias: number
+          id: string
+          ordem: number
+          texto: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          dias: number
+          id?: string
+          ordem?: number
+          texto: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          dias?: number
+          id?: string
+          ordem?: number
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_followups_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_leads: {
         Row: {
           campaign_id: string
           created_at: string
+          followups_enviados: number
           id: string
           lead_id: string
           outbox_message_id: string | null
+          simulado: boolean
           status: string
+          ultimo_envio_em: string | null
           updated_at: string
         }
         Insert: {
           campaign_id: string
           created_at?: string
+          followups_enviados?: number
           id?: string
           lead_id: string
           outbox_message_id?: string | null
+          simulado?: boolean
           status?: string
+          ultimo_envio_em?: string | null
           updated_at?: string
         }
         Update: {
           campaign_id?: string
           created_at?: string
+          followups_enviados?: number
           id?: string
           lead_id?: string
           outbox_message_id?: string | null
+          simulado?: boolean
           status?: string
+          ultimo_envio_em?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -166,6 +210,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "conversas_recentes"
+            referencedColumns: ["lead_id"]
           },
           {
             foreignKeyName: "campaign_leads_lead_id_fkey"
@@ -192,36 +243,60 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          cidade: string | null
           corpo_mensagem: string
           created_at: string
           created_by: string | null
+          descricao: string
           id: string
           intervalo_max_seg: number
           intervalo_min_seg: number
+          limite_campanha: number | null
+          limite_diario: number
+          modo_conservador: boolean
+          modo_teste: boolean
+          nicho: string | null
           nome: string
           status: string
+          tags: string[]
           updated_at: string
         }
         Insert: {
+          cidade?: string | null
           corpo_mensagem: string
           created_at?: string
           created_by?: string | null
+          descricao?: string
           id?: string
           intervalo_max_seg?: number
           intervalo_min_seg?: number
+          limite_campanha?: number | null
+          limite_diario?: number
+          modo_conservador?: boolean
+          modo_teste?: boolean
+          nicho?: string | null
           nome: string
           status?: string
+          tags?: string[]
           updated_at?: string
         }
         Update: {
+          cidade?: string | null
           corpo_mensagem?: string
           created_at?: string
           created_by?: string | null
+          descricao?: string
           id?: string
           intervalo_max_seg?: number
           intervalo_min_seg?: number
+          limite_campanha?: number | null
+          limite_diario?: number
+          modo_conservador?: boolean
+          modo_teste?: boolean
+          nicho?: string | null
           nome?: string
           status?: string
+          tags?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -306,11 +381,67 @@ export type Database = {
             foreignKeyName: "lead_events_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
+            referencedRelation: "conversas_recentes"
+            referencedColumns: ["lead_id"]
+          },
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_parados"
+            referencedColumns: ["lead_id"]
+          },
+        ]
+      }
+      lead_tasks: {
+        Row: {
+          created_at: string
+          feita: boolean
+          id: string
+          lead_id: string
+          prazo: string | null
+          texto: string
+        }
+        Insert: {
+          created_at?: string
+          feita?: boolean
+          id?: string
+          lead_id: string
+          prazo?: string | null
+          texto: string
+        }
+        Update: {
+          created_at?: string
+          feita?: boolean
+          id?: string
+          lead_id?: string
+          prazo?: string | null
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "conversas_recentes"
+            referencedColumns: ["lead_id"]
+          },
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads_parados"
@@ -341,6 +472,7 @@ export type Database = {
           score: number
           site: string | null
           status: string
+          tags: string[]
           telefone: string
           temperatura: string | null
           updated_at: string
@@ -367,6 +499,7 @@ export type Database = {
           score?: number
           site?: string | null
           status?: string
+          tags?: string[]
           telefone: string
           temperatura?: string | null
           updated_at?: string
@@ -393,6 +526,7 @@ export type Database = {
           score?: number
           site?: string | null
           status?: string
+          tags?: string[]
           telefone?: string
           temperatura?: string | null
           updated_at?: string
@@ -460,6 +594,13 @@ export type Database = {
           whatsapp_message_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "conversas_recentes"
+            referencedColumns: ["lead_id"]
+          },
           {
             foreignKeyName: "messages_lead_id_fkey"
             columns: ["lead_id"]
@@ -536,6 +677,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outbox_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "conversas_recentes"
+            referencedColumns: ["lead_id"]
           },
           {
             foreignKeyName: "outbox_messages_lead_id_fkey"
@@ -624,6 +772,28 @@ export type Database = {
       }
     }
     Views: {
+      conversas_recentes: {
+        Row: {
+          classificacao: string | null
+          empresa: string | null
+          lead_id: string | null
+          responsavel_id: string | null
+          status: string | null
+          telefone: string | null
+          ultima_direcao: string | null
+          ultima_mensagem: string | null
+          ultima_mensagem_em: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads_parados: {
         Row: {
           empresa: string | null

@@ -9,6 +9,7 @@ import type { Profile } from "@/lib/auth";
 const NAV_ADMIN = [
   { href: "/", label: "Dashboard", icon: "📊" },
   { href: "/leads", label: "Leads", icon: "🧾" },
+  { href: "/conversas", label: "Conversas", icon: "💬" },
   { href: "/admin/campanhas", label: "Campanhas", icon: "📣" },
   { href: "/admin/usuarios", label: "Consultores", icon: "👥" },
   { href: "/admin/configuracoes", label: "Notificações", icon: "🔔" },
@@ -18,6 +19,7 @@ const NAV_ADMIN = [
 const NAV_CONSULTOR = [
   { href: "/", label: "Dashboard", icon: "📊" },
   { href: "/leads", label: "Meus leads", icon: "🧾" },
+  { href: "/conversas", label: "Conversas", icon: "💬" },
 ];
 
 export function Sidebar({ profile }: { profile: Profile }) {

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, AuthError } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/supabase/types";
-
-type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
 
 export async function GET() {
   try {
@@ -23,10 +20,11 @@ export async function GET() {
   const results = await Promise.all(
     (campaigns ?? []).map(async (c) => {
       const { data: leads } = await supabaseAdmin.from("campaign_leads").select("status").eq("campaign_id", c.id);
-      const counts = { total: leads?.length ?? 0, enviado: 0, falhou: 0, pendente: 0 };
+      const counts = { total: leads?.length ?? 0, enviado: 0, falhou: 0, pulado: 0, pendente: 0 };
       for (const l of leads ?? []) {
         if (l.status === "ENVIADO") counts.enviado++;
         else if (l.status === "FALHOU") counts.falhou++;
+        else if (l.status === "PULADO") counts.pulado++;
         else counts.pendente++;
       }
       return { ...c, counts };
@@ -47,27 +45,74 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const nome = String(body.nome ?? "").trim();
+  const descricao = String(body.descricao ?? "").trim();
+  const nicho = String(body.nicho ?? "").trim() || null;
+  const cidade = String(body.cidade ?? "").trim() || null;
+  const tags: string[] = Array.isArray(body.tags) ? body.tags.map(String).filter(Boolean) : [];
+  const leadIds: string[] = Array.isArray(body.lead_ids)
+    ? Array.from(new Set<string>(body.lead_ids.map((v: unknown) => String(v))))
+    : [];
   const corpoMensagem = String(body.corpo_mensagem ?? "").trim();
-  const statusFiltro = body.status_filtro as LeadStatus;
-  const intervaloMin = Number(body.intervalo_min_seg ?? 30);
-  const intervaloMax = Number(body.intervalo_max_seg ?? 90);
+  const followups: { dias: number; texto: string }[] = Array.isArray(body.followups)
+    ? body.followups
+        .map((f: unknown) => {
+          const fo = f as { dias?: unknown; texto?: unknown };
+          return { dias: Number(fo.dias) || 0, texto: String(fo.texto ?? "").trim() };
+        })
+        .filter((f: { dias: number; texto: string }) => f.texto && f.dias > 0)
+    : [];
+  const intervaloMin = Number(body.intervalo_min_seg ?? 20);
+  const intervaloMax = Number(body.intervalo_max_seg ?? 60);
+  const limiteDiario = Number(body.limite_diario ?? 80);
+  const limiteCampanhaRaw = Number(body.limite_campanha ?? 0);
+  const limiteCampanha = limiteCampanhaRaw > 0 ? limiteCampanhaRaw : null;
+  const modoConservador = Boolean(body.modo_conservador);
+  const modoTeste = Boolean(body.modo_teste);
 
-  if (!nome || !corpoMensagem || !statusFiltro) {
-    return NextResponse.json({ error: "nome, corpo_mensagem e status_filtro são obrigatórios." }, { status: 400 });
+  if (!nome || !corpoMensagem) {
+    return NextResponse.json({ error: "Nome e mensagem são obrigatórios." }, { status: 400 });
   }
-  if (intervaloMin < 15 || intervaloMax < intervaloMin) {
-    return NextResponse.json({ error: "intervalo mínimo deve ser >= 15s e menor ou igual ao máximo." }, { status: 400 });
+  if (leadIds.length === 0) {
+    return NextResponse.json({ error: "Selecione ao menos 1 lead para a campanha." }, { status: 400 });
+  }
+  if (intervaloMin < 5 || intervaloMax < intervaloMin) {
+    return NextResponse.json({ error: "Intervalo mínimo deve ser >= 5s e menor ou igual ao máximo." }, { status: 400 });
   }
 
   const supabaseAdmin = createAdminClient();
+
+  // Só entram leads com responsável definido -- sem isso não tem de qual
+  // WhatsApp enviar.
+  const { data: leadsValidos } = await supabaseAdmin
+    .from("leads")
+    .select("id")
+    .in("id", leadIds)
+    .not("responsavel_id", "is", null);
+  const idsValidos = new Set((leadsValidos ?? []).map((l) => l.id));
+  const idsFiltrados = leadIds.filter((id) => idsValidos.has(id));
+
+  if (idsFiltrados.length === 0) {
+    return NextResponse.json(
+      { error: "Nenhum dos leads selecionados tem responsável definido." },
+      { status: 400 }
+    );
+  }
 
   const { data: campaign, error: campaignError } = await supabaseAdmin
     .from("campaigns")
     .insert({
       nome,
+      descricao,
+      nicho,
+      cidade,
+      tags,
       corpo_mensagem: corpoMensagem,
       intervalo_min_seg: intervaloMin,
       intervalo_max_seg: intervaloMax,
+      limite_diario: limiteDiario,
+      limite_campanha: limiteCampanha,
+      modo_conservador: modoConservador,
+      modo_teste: modoTeste,
       created_by: admin.id,
     })
     .select()
@@ -77,16 +122,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: campaignError?.message ?? "Erro ao criar campanha." }, { status: 500 });
   }
 
-  // So inclui leads com responsavel definido -- sem isso nao tem de qual
-  // WhatsApp enviar.
-  const { data: leads } = await supabaseAdmin
-    .from("leads")
-    .select("id")
-    .eq("status", statusFiltro)
-    .not("responsavel_id", "is", null);
+  await supabaseAdmin
+    .from("campaign_leads")
+    .insert(idsFiltrados.map((id) => ({ campaign_id: campaign.id, lead_id: id })));
 
-  if (leads && leads.length > 0) {
-    await supabaseAdmin.from("campaign_leads").insert(leads.map((l) => ({ campaign_id: campaign.id, lead_id: l.id })));
+  if (followups.length > 0) {
+    await supabaseAdmin.from("campaign_followups").insert(
+      followups.map((f, i) => ({ campaign_id: campaign.id, ordem: i, dias: f.dias, texto: f.texto }))
+    );
   }
 
   await supabaseAdmin.from("audit_logs").insert({
@@ -94,8 +137,15 @@ export async function POST(request: Request) {
     action: "CAMPAIGN_CREATED",
     target_table: "campaigns",
     target_id: campaign.id,
-    metadata: { nome, status_filtro: statusFiltro, leads_incluidos: leads?.length ?? 0 },
+    metadata: {
+      nome,
+      leads_incluidos: idsFiltrados.length,
+      leads_ignorados_sem_responsavel: leadIds.length - idsFiltrados.length,
+      followups: followups.length,
+      modo_teste: modoTeste,
+      modo_conservador: modoConservador,
+    },
   });
 
-  return NextResponse.json({ campaign, leads_incluidos: leads?.length ?? 0 }, { status: 201 });
+  return NextResponse.json({ campaign, leads_incluidos: idsFiltrados.length }, { status: 201 });
 }

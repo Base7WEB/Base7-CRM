@@ -354,6 +354,56 @@ body {
   letter-spacing: 0.4px;
 }
 
+/* ── Funil ────────────────────────────────────────────── */
+.funil-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.funil-row:last-child {
+  border: none;
+}
+.funil-label {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.funil-bar-wrap {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.funil-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  transition: width 0.6s ease;
+}
+.funil-count {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  color: #fff;
+}
+
+/* Recentes ──────────────────────────────────────────── */
+.recente-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.recente-item:last-child {
+  border-bottom: none;
+}
+
 /* ── Box ──────────────────────────────────────────────── */
 .box {
   background: var(--bg2);

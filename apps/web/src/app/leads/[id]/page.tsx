@@ -9,6 +9,7 @@ import { AppShell } from "@/components/app-shell";
 import { AssignResponsavel } from "./assign-responsavel";
 import { ConversationView } from "./conversation-view";
 import { StatusSelect } from "./status-select";
+import { TagsTasksPanel } from "./tags-tasks-panel";
 
 const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
   QUENTE: "badge-hot",
@@ -64,6 +65,12 @@ export default async function LeadDetailPage({
     .eq("lead_id", id)
     .order("created_at", { ascending: true })
     .limit(50);
+
+  const { data: tasks } = await supabase
+    .from("lead_tasks")
+    .select("id, texto, prazo, feita")
+    .eq("lead_id", id)
+    .order("created_at", { ascending: true });
 
   let consultores: { id: string; full_name: string }[] = [];
   if (profile.role === "ADMIN") {
@@ -154,6 +161,8 @@ export default async function LeadDetailPage({
           <p className="text-sm">Você</p>
         )}
       </div>
+
+      <TagsTasksPanel leadId={lead.id} initialTags={lead.tags ?? []} initialTasks={tasks ?? []} canEdit={canSend} />
 
       <ConversationView leadId={lead.id} initialMessages={messages ?? []} canSend={canSend} />
     </AppShell>

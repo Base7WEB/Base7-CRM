@@ -24,10 +24,13 @@ export interface DashboardMetrics {
   respostas: number;
   vendas: number;
   perdidos: number;
+  mensagensEnviadas: number;
+  mensagensRecebidas: number;
   // null = sem dados suficientes pra calcular (evita divisao por zero)
   taxaResposta: number | null;
   taxaFechamento: number | null;
   leadsParados: { lead_id: string; empresa: string; motivo: string; ultima_mensagem_em: string }[];
+  leadsRecentes: { id: string; empresa: string; status: string; classificacao: string; created_at: string }[];
 }
 
 type LeadParadoRow = {
@@ -51,9 +54,12 @@ const EMPTY_METRICS: DashboardMetrics = {
   respostas: 0,
   vendas: 0,
   perdidos: 0,
+  mensagensEnviadas: 0,
+  mensagensRecebidas: 0,
   taxaResposta: null,
   taxaFechamento: null,
   leadsParados: [],
+  leadsRecentes: [],
 };
 
 export async function computeDashboardMetrics(
@@ -93,6 +99,20 @@ export async function computeDashboardMetrics(
   if (opts.responsavelId) parQuery = parQuery.eq("responsavel_id", opts.responsavelId);
   const { data: leadsParados } = await parQuery;
 
+  let messagesQuery = supabase.from("messages").select("direction").in("lead_id", leadIds);
+  if (since) messagesQuery = messagesQuery.gte("created_at", since);
+  const { data: messages } = await messagesQuery;
+  const mensagensEnviadas = (messages ?? []).filter((m) => m.direction === "OUT").length;
+  const mensagensRecebidas = (messages ?? []).filter((m) => m.direction === "IN").length;
+
+  let recentesQuery = supabase
+    .from("leads")
+    .select("id, empresa, status, classificacao, created_at")
+    .order("created_at", { ascending: false })
+    .limit(6);
+  if (opts.responsavelId) recentesQuery = recentesQuery.eq("responsavel_id", opts.responsavelId);
+  const { data: leadsRecentes } = await recentesQuery;
+
   return {
     totalLeads: leads.length,
     porStatus,
@@ -101,8 +121,11 @@ export async function computeDashboardMetrics(
     respostas,
     vendas,
     perdidos,
+    mensagensEnviadas,
+    mensagensRecebidas,
     taxaResposta: contatosRealizados > 0 ? respostas / contatosRealizados : null,
     taxaFechamento: leads.length > 0 ? vendas / leads.length : null,
     leadsParados: (leadsParados ?? []).filter(isCompleteLeadParado),
+    leadsRecentes: leadsRecentes ?? [],
   };
 }
