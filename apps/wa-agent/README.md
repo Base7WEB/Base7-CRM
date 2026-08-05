@@ -6,9 +6,9 @@ Agente local do WhatsApp de cada consultor (ou do admin, para o canal de notific
 
 1. No CRM, como admin, vá em **Gerenciar consultores** e clique em **Gerar token WhatsApp** para o usuário dono deste número. Copie o token (só aparece uma vez).
 2. Nesta pasta (`apps/wa-agent`), copie `.env.example` para `.env` e cole o token em `CRM_AGENT_TOKEN`. Ajuste `CRM_API_BASE_URL` se não for produção.
-3. `npm install` (se ainda não rodou o install do monorepo inteiro).
-4. `npm start`.
-5. Um QR code aparece no terminal. Escaneie com o WhatsApp em **Aparelhos conectados**.
+3. Dê dois cliques em **`iniciar.bat`** — ele instala as dependências (só na primeira vez) e sobe o agente sozinho.
+   - Sem o `.bat`: `npm install` (uma vez) e depois `npm start`.
+4. Um QR code aparece na janela. Escaneie com o WhatsApp em **Aparelhos conectados**.
 
 A sessão fica salva em `session-data/` (nesta mesma pasta) — enquanto esse diretório existir, não precisa escanear de novo, mesmo reiniciando o processo. **Fechar este terminal interrompe a automação do WhatsApp** — o resto do CRM (leads, dashboard, login) continua funcionando normalmente, só a detecção de mensagens desse número para.
 

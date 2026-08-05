@@ -7,11 +7,14 @@ A lógica de scraping em si (`scraper.py`) é a mesma do CRM antigo (`legacy/bac
 ## Como rodar
 
 1. No CRM, como admin, gere um token de agente (mesma tela de **Gerenciar consultores** usada pro WhatsApp — o token de scraper usa o mesmo mecanismo). Os leads coletados ficam atribuídos ao dono desse token como responsável inicial (o admin pode reatribuir depois).
-2. Copie `.env.example` para `.env` e cole o token em `CRM_AGENT_TOKEN`.
-3. `python -m venv venv && venv\Scripts\activate` (Windows) — ou seu gerenciador de ambiente Python preferido.
-4. `pip install -r requirements.txt`
-5. `python -m playwright install chromium`
-6. Rodar uma busca:
+2. Dê dois cliques em **`instalar.bat`** (só na primeira vez, ou se der algum erro de dependência) — ele cria o ambiente virtual, instala tudo e já cria o `.env` a partir do exemplo. Abra o `.env` criado e cole o token do CRM.
+3. Pra cada busca, dê dois cliques em **`buscar-leads.bat`** — ele pergunta nicho/cidade (ou hashtag, se escolher Instagram) direto na janela, sem precisar digitar comando nenhum.
+
+Sem os `.bat` (Mac/Linux ou preferência por linha de comando):
+1. `python -m venv venv && venv\Scripts\activate` (Windows) — ou seu gerenciador de ambiente Python preferido.
+2. `pip install -r requirements.txt`
+3. `python -m playwright install chromium`
+4. Rodar uma busca:
    ```
    python run.py maps --nicho "Barbearia" --cidade "Campinas, SP" --rating-min 4 --max-resultados 30
    ```
