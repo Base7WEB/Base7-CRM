@@ -141,6 +141,12 @@ export default async function HomePage({
               Gerenciar consultores
             </Link>
             <Link
+              href="/admin/campanhas"
+              className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+            >
+              Campanhas
+            </Link>
+            <Link
               href="/admin/configuracoes"
               className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
             >

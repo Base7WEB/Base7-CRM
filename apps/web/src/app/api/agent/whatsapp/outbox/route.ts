@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     .select("id, to_phone, body")
     .eq("profile_id", profileId)
     .eq("status", "PENDING")
+    .or(`not_before.is.null,not_before.lte.${new Date().toISOString()}`)
     .order("created_at", { ascending: true })
     .limit(10);
 

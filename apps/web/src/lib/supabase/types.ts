@@ -131,6 +131,109 @@ export type Database = {
           },
         ]
       }
+      campaign_leads: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          lead_id: string
+          outbox_message_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          outbox_message_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          outbox_message_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_leads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_parados"
+            referencedColumns: ["lead_id"]
+          },
+          {
+            foreignKeyName: "campaign_leads_outbox_message_id_fkey"
+            columns: ["outbox_message_id"]
+            isOneToOne: false
+            referencedRelation: "outbox_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          corpo_mensagem: string
+          created_at: string
+          created_by: string | null
+          id: string
+          intervalo_max_seg: number
+          intervalo_min_seg: number
+          nome: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          corpo_mensagem: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intervalo_max_seg?: number
+          intervalo_min_seg?: number
+          nome: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          corpo_mensagem?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intervalo_max_seg?: number
+          intervalo_min_seg?: number
+          nome?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultant_agent_tokens: {
         Row: {
           created_at: string
@@ -384,10 +487,12 @@ export type Database = {
         Row: {
           attempt_count: number
           body: string
+          campaign_id: string | null
           created_at: string
           error: string | null
           id: string
           lead_id: string | null
+          not_before: string | null
           profile_id: string
           sent_at: string | null
           status: string
@@ -397,10 +502,12 @@ export type Database = {
         Insert: {
           attempt_count?: number
           body: string
+          campaign_id?: string | null
           created_at?: string
           error?: string | null
           id?: string
           lead_id?: string | null
+          not_before?: string | null
           profile_id: string
           sent_at?: string | null
           status?: string
@@ -410,10 +517,12 @@ export type Database = {
         Update: {
           attempt_count?: number
           body?: string
+          campaign_id?: string | null
           created_at?: string
           error?: string | null
           id?: string
           lead_id?: string | null
+          not_before?: string | null
           profile_id?: string
           sent_at?: string | null
           status?: string
@@ -421,6 +530,13 @@ export type Database = {
           whatsapp_message_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "outbox_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "outbox_messages_lead_id_fkey"
             columns: ["lead_id"]

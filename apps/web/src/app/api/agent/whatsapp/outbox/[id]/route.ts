@@ -24,7 +24,7 @@ export async function PATCH(
   // um agente marcar como enviada uma mensagem de fila de outro consultor.
   const { data: item } = await supabaseAdmin
     .from("outbox_messages")
-    .select("id, profile_id")
+    .select("id, profile_id, campaign_id, lead_id")
     .eq("id", id)
     .single();
 
@@ -43,5 +43,14 @@ export async function PATCH(
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (item.campaign_id && item.lead_id) {
+    await supabaseAdmin
+      .from("campaign_leads")
+      .update({ status: status === "SENT" ? "ENVIADO" : "FALHOU", updated_at: new Date().toISOString() })
+      .eq("campaign_id", item.campaign_id)
+      .eq("lead_id", item.lead_id);
+  }
+
   return NextResponse.json({ ok: true });
 }
