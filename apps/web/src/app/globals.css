@@ -354,6 +354,22 @@ body {
   letter-spacing: 0.4px;
 }
 
+/* ── Tabs ─────────────────────────────────────────────── */
+.tab-btn {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13.5px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab-btn.ativo {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+}
+
 /* ── Funil ────────────────────────────────────────────── */
 .funil-row {
   display: grid;

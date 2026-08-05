@@ -8,7 +8,9 @@ A lógica de scraping em si (`scraper.py`) é a mesma do CRM antigo (`legacy/bac
 
 1. No CRM, como admin, gere um token de agente (mesma tela de **Gerenciar consultores** usada pro WhatsApp — o token de scraper usa o mesmo mecanismo). Os leads coletados ficam atribuídos ao dono desse token como responsável inicial (o admin pode reatribuir depois).
 2. Dê dois cliques em **`instalar.bat`** (só na primeira vez, ou se der algum erro de dependência) — ele cria o ambiente virtual, instala tudo e já cria o `.env` a partir do exemplo. Abra o `.env` criado e cole o token do CRM.
-3. Pra cada busca, dê dois cliques em **`buscar-leads.bat`** — ele pergunta nicho/cidade (ou hashtag, se escolher Instagram) direto na janela, sem precisar digitar comando nenhum.
+3. Duas formas de buscar:
+   - **Pela tela Prospecção do CRM (recomendado)**: dê dois cliques em **`escutar-fila.bat`** e deixe a janela aberta. Toda busca pedida na tela Prospecção do site cai nessa fila e é executada aqui automaticamente — os resultados voltam pra tela pra você selecionar e importar.
+   - **Direto por aqui**: dê dois cliques em **`buscar-leads.bat`** — pergunta nicho/cidade (ou hashtag) na janela e já importa tudo que encontrar, sem passar pela tela de revisão.
 
 Sem os `.bat` (Mac/Linux ou preferência por linha de comando):
 1. `python -m venv venv && venv\Scripts\activate` (Windows) — ou seu gerenciador de ambiente Python preferido.
@@ -21,6 +23,10 @@ Sem os `.bat` (Mac/Linux ou preferência por linha de comando):
    ou, experimental:
    ```
    python run.py instagram --hashtag barbeariacampinas --max-resultados 20
+   ```
+   ou escutar a fila da tela Prospecção do CRM:
+   ```
+   python run.py watch
    ```
 
 ## O que é enviado

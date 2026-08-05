@@ -738,6 +738,122 @@ export type Database = {
         }
         Relationships: []
       }
+      scraper_job_leads: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          email: string | null
+          empresa: string
+          endereco: string | null
+          id: string
+          importado: boolean
+          instagram: string | null
+          job_id: string
+          lead_id: string | null
+          nicho: string | null
+          rating_google: number | null
+          responsavel_atual: string | null
+          reviews_google: number | null
+          site: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          empresa: string
+          endereco?: string | null
+          id?: string
+          importado?: boolean
+          instagram?: string | null
+          job_id: string
+          lead_id?: string | null
+          nicho?: string | null
+          rating_google?: number | null
+          responsavel_atual?: string | null
+          reviews_google?: number | null
+          site?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          empresa?: string
+          endereco?: string | null
+          id?: string
+          importado?: boolean
+          instagram?: string | null
+          job_id?: string
+          lead_id?: string | null
+          nicho?: string | null
+          rating_google?: number | null
+          responsavel_atual?: string | null
+          reviews_google?: number | null
+          site?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraper_job_leads_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "scraper_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scraper_job_leads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scraper_jobs: {
+        Row: {
+          created_at: string
+          erro: string | null
+          finished_at: string | null
+          id: string
+          modo: string
+          params: Json
+          requested_by: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          erro?: string | null
+          finished_at?: string | null
+          id?: string
+          modo: string
+          params?: Json
+          requested_by: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          erro?: string | null
+          finished_at?: string | null
+          id?: string
+          modo?: string
+          params?: Json
+          requested_by?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraper_jobs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_sessions: {
         Row: {
           last_connected_at: string | null

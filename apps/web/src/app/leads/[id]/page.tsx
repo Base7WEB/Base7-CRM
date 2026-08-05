@@ -164,7 +164,9 @@ export default async function LeadDetailPage({
 
       <TagsTasksPanel leadId={lead.id} initialTags={lead.tags ?? []} initialTasks={tasks ?? []} canEdit={canSend} />
 
-      <ConversationView leadId={lead.id} initialMessages={messages ?? []} canSend={canSend} />
+      <div id="conversa" className="scroll-mt-4">
+        <ConversationView leadId={lead.id} initialMessages={messages ?? []} canSend={canSend} />
+      </div>
     </AppShell>
   );
 }

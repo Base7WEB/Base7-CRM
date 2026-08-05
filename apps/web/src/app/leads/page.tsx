@@ -40,7 +40,9 @@ export default async function LeadsPage() {
   const supabase = await createClient();
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, empresa, telefone, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at")
+    .select(
+      "id, empresa, nicho, cidade, telefone, site, instagram, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at"
+    )
     .order("score", { ascending: false });
 
   const responsavelIds = [...new Set((leads ?? []).map((l) => l.responsavel_id).filter(Boolean))];
@@ -66,9 +68,12 @@ export default async function LeadsPage() {
               <tr>
                 <th>Empresa</th>
                 <th>Telefone</th>
+                <th>Site</th>
+                <th>Instagram</th>
                 <th>Status</th>
                 <th>Classificação</th>
                 <th>Responsável</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -78,8 +83,47 @@ export default async function LeadsPage() {
                     <Link href={`/leads/${lead.id}`} className="font-semibold text-white hover:text-(--cyan)">
                       {lead.empresa}
                     </Link>
+                    {(lead.nicho || lead.cidade) && (
+                      <p className="text-xs text-(--muted)">
+                        {[lead.nicho, lead.cidade].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
                   </td>
                   <td className="text-(--text)">{lead.telefone}</td>
+                  <td>
+                    {lead.site ? (
+                      <a
+                        href={lead.site.startsWith("http") ? lead.site : `https://${lead.site}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-(--cyan) hover:underline"
+                        title={lead.site}
+                      >
+                        ✓
+                      </a>
+                    ) : (
+                      <span className="text-(--muted)">—</span>
+                    )}
+                  </td>
+                  <td>
+                    {lead.instagram ? (
+                      <a
+                        href={
+                          lead.instagram.startsWith("http")
+                            ? lead.instagram
+                            : `https://instagram.com/${lead.instagram.replace(/^@/, "")}`
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-(--cyan) hover:underline"
+                        title={lead.instagram}
+                      >
+                        ✓
+                      </a>
+                    ) : (
+                      <span className="text-(--muted)">—</span>
+                    )}
+                  </td>
                   <td className="text-(--text)">
                     <span className="badge badge-status">{STATUS_LABEL[lead.status] ?? lead.status}</span>
                   </td>
@@ -92,6 +136,17 @@ export default async function LeadsPage() {
                     {lead.responsavel_id
                       ? responsavelById.get(lead.responsavel_id) ?? "—"
                       : lead.responsavel_legado_texto || "Não atribuído"}
+                  </td>
+                  <td>
+                    {lead.telefone && (
+                      <Link
+                        href={`/leads/${lead.id}#conversa`}
+                        title="Abrir conversa no WhatsApp"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-(--success) hover:bg-white/5"
+                      >
+                        💬
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}

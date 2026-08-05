@@ -80,7 +80,7 @@ export function UsuariosClient() {
   async function generateAgentToken(userId: string) {
     setError(null);
     setNewTokenFor(null);
-    const res = await fetch("/api/admin/whatsapp-agents", {
+    const res = await fetch("/api/whatsapp-agents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profile_id: userId }),
