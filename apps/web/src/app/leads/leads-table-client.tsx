@@ -48,6 +48,13 @@ const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
   FRIO: "🔵 Frio",
 };
 
+function normalizar(v: string): string {
+  return v
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
 export function LeadsTableClient({
   leads,
   responsavelById,
@@ -60,12 +67,23 @@ export function LeadsTableClient({
   isAdmin: boolean;
 }) {
   const router = useRouter();
+  const [busca, setBusca] = useState("");
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [consultorEscolhido, setConsultorEscolhido] = useState("");
   const [atribuindo, setAtribuindo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const todosSelecionados = leads.length > 0 && selecionados.size === leads.length;
+  const leadsFiltrados = useMemo(() => {
+    const termo = normalizar(busca.trim());
+    if (!termo) return leads;
+    return leads.filter((l) => {
+      const responsavelNome = l.responsavel_id ? responsavelById.get(l.responsavel_id) ?? "" : l.responsavel_legado_texto ?? "";
+      const alvo = [l.empresa, l.nicho, l.cidade, l.telefone, responsavelNome].filter(Boolean).join(" ");
+      return normalizar(alvo).includes(termo);
+    });
+  }, [busca, leads, responsavelById]);
+
+  const todosSelecionados = leadsFiltrados.length > 0 && leadsFiltrados.every((l) => selecionados.has(l.id));
 
   function toggle(id: string) {
     setSelecionados((prev) => {
@@ -77,7 +95,16 @@ export function LeadsTableClient({
   }
 
   function toggleTodos() {
-    setSelecionados(todosSelecionados ? new Set() : new Set(leads.map((l) => l.id)));
+    setSelecionados((prev) => {
+      if (todosSelecionados) {
+        const next = new Set(prev);
+        for (const l of leadsFiltrados) next.delete(l.id);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const l of leadsFiltrados) next.add(l.id);
+      return next;
+    });
   }
 
   async function handleAtribuir() {
@@ -106,6 +133,20 @@ export function LeadsTableClient({
 
   return (
     <div className="box">
+      <div className="mb-3 flex items-center gap-3">
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por empresa, nicho, cidade, telefone ou responsável..."
+          className="max-w-md"
+        />
+        {busca.trim() && (
+          <span className="shrink-0 text-xs text-(--muted)">
+            {leadsFiltrados.length} de {leads.length} lead(s)
+          </span>
+        )}
+      </div>
+
       {isAdmin && selecionados.size > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-(--cyan)/30 bg-(--cyan)/5 p-3">
           <strong className="text-sm text-(--cyan)">{selecionados.size} selecionado(s)</strong>
@@ -140,6 +181,7 @@ export function LeadsTableClient({
                 </th>
               )}
               <th>Empresa</th>
+              <th>Cidade</th>
               <th>Telefone</th>
               <th>Site</th>
               <th>Instagram</th>
@@ -150,7 +192,7 @@ export function LeadsTableClient({
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
+            {leadsFiltrados.map((lead) => (
               <tr key={lead.id}>
                 {isAdmin && (
                   <td>
@@ -161,10 +203,9 @@ export function LeadsTableClient({
                   <Link href={`/leads/${lead.id}`} className="font-semibold text-white hover:text-(--cyan)">
                     {lead.empresa}
                   </Link>
-                  {(lead.nicho || lead.cidade) && (
-                    <p className="text-xs text-(--muted)">{[lead.nicho, lead.cidade].filter(Boolean).join(" · ")}</p>
-                  )}
+                  {lead.nicho && <p className="text-xs text-(--muted)">{lead.nicho}</p>}
                 </td>
+                <td className="text-(--text)">{lead.cidade ?? "—"}</td>
                 <td className="text-(--text)">{lead.telefone}</td>
                 <td>
                   {lead.site ? (
@@ -224,7 +265,9 @@ export function LeadsTableClient({
             ))}
           </tbody>
         </table>
-        {leads.length === 0 && <p className="empty">Nenhum lead ainda.</p>}
+        {leadsFiltrados.length === 0 && (
+          <p className="empty">{leads.length === 0 ? "Nenhum lead ainda." : "Nenhum lead encontrado com essa busca."}</p>
+        )}
       </div>
     </div>
   );
