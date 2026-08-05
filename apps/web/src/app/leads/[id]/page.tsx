@@ -129,6 +129,35 @@ export default async function LeadDetailPage({
               {lead.last_interaction_at ? new Date(lead.last_interaction_at).toLocaleString("pt-BR") : "—"}
             </p>
           </div>
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Site</p>
+            <p className="mt-1">
+              {lead.site ? (
+                <a
+                  href={lead.site.startsWith("http") ? lead.site : `https://${lead.site}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-(--cyan) hover:underline"
+                >
+                  🔗 {lead.site}
+                </a>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs uppercase text-(--muted)">Google Maps</p>
+            <p className="mt-1">
+              {lead.google_maps_url ? (
+                <a href={lead.google_maps_url} target="_blank" rel="noreferrer" className="text-(--cyan) hover:underline">
+                  🗺️ Ver no Maps
+                </a>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
         </div>
       </div>
 

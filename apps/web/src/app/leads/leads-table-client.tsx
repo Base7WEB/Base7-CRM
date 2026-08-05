@@ -12,6 +12,7 @@ type Lead = {
   cidade: string | null;
   telefone: string;
   site: string | null;
+  google_maps_url: string | null;
   instagram: string | null;
   status: string;
   classificacao: string;
@@ -184,6 +185,7 @@ export function LeadsTableClient({
               <th>Cidade</th>
               <th>Telefone</th>
               <th>Site</th>
+              <th>Maps</th>
               <th>Instagram</th>
               <th>Status</th>
               <th>Classificação</th>
@@ -216,7 +218,21 @@ export function LeadsTableClient({
                       className="text-(--cyan) hover:underline"
                       title={lead.site}
                     >
-                      ✓
+                      🔗 Site
+                    </a>
+                  ) : (
+                    <span className="text-(--muted)">—</span>
+                  )}
+                </td>
+                <td>
+                  {lead.google_maps_url ? (
+                    <a
+                      href={lead.google_maps_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-(--cyan) hover:underline"
+                    >
+                      🗺️ Maps
                     </a>
                   ) : (
                     <span className="text-(--muted)">—</span>

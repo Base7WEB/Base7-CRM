@@ -70,6 +70,7 @@ async def pesquisar_google_maps(nicho, cidade, raio_km, rating_min, max_resultad
                 lead = await _extrair_detalhe(page)
                 if not lead:
                     continue
+                lead["google_maps_url"] = url
 
                 if rating_min > 0 and lead.get("rating_google", 0) < rating_min:
                     print(f"[Scraper] × Filtrado (rating): {lead.get('empresa')}")

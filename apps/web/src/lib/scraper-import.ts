@@ -14,6 +14,7 @@ export type ScrapedLeadInput = {
   email?: string | null;
   rating_google?: number | null;
   reviews_google?: number | null;
+  google_maps_url?: string | null;
 };
 
 export type ImportItemResult =
@@ -74,6 +75,7 @@ export async function importScrapedLeads(
         email: raw.email || null,
         rating_google: typeof raw.rating_google === "number" ? raw.rating_google : null,
         reviews_google: typeof raw.reviews_google === "number" ? raw.reviews_google : null,
+        google_maps_url: raw.google_maps_url || null,
         origem: "scraper",
         responsavel_id: responsavelId,
         status: "NOVO",

@@ -486,6 +486,7 @@ export type Database = {
           created_at: string
           email: string | null
           empresa: string
+          google_maps_url: string | null
           id: string
           instagram: string | null
           intencao_atual: string | null
@@ -513,6 +514,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           empresa: string
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           intencao_atual?: string | null
@@ -540,6 +542,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           empresa?: string
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           intencao_atual?: string | null
@@ -773,6 +776,7 @@ export type Database = {
           email: string | null
           empresa: string
           endereco: string | null
+          google_maps_url: string | null
           id: string
           importado: boolean
           instagram: string | null
@@ -791,6 +795,7 @@ export type Database = {
           email?: string | null
           empresa: string
           endereco?: string | null
+          google_maps_url?: string | null
           id?: string
           importado?: boolean
           instagram?: string | null
@@ -809,6 +814,7 @@ export type Database = {
           email?: string | null
           empresa?: string
           endereco?: string | null
+          google_maps_url?: string | null
           id?: string
           importado?: boolean
           instagram?: string | null

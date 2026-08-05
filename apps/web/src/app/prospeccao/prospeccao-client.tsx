@@ -24,6 +24,7 @@ type JobLead = {
   cidade: string | null;
   instagram: string | null;
   site: string | null;
+  google_maps_url: string | null;
   email: string | null;
   rating_google: number | null;
   reviews_google: number | null;
@@ -360,6 +361,7 @@ export function ProspeccaoClient({
                                 <th>Telefone</th>
                                 <th>E-mail</th>
                                 <th>Site</th>
+                                <th>Maps</th>
                                 <th>Nicho</th>
                                 <th>Avaliação</th>
                                 <th>Status</th>
@@ -405,6 +407,20 @@ export function ProspeccaoClient({
                                         className="text-(--cyan) hover:underline"
                                       >
                                         🔗 Site
+                                      </a>
+                                    ) : (
+                                      <span className="text-(--muted)">—</span>
+                                    )}
+                                  </td>
+                                  <td className="text-xs">
+                                    {r.google_maps_url ? (
+                                      <a
+                                        href={r.google_maps_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-(--cyan) hover:underline"
+                                      >
+                                        🗺️ Maps
                                       </a>
                                     ) : (
                                       <span className="text-(--muted)">—</span>

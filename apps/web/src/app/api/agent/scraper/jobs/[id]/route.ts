@@ -14,6 +14,7 @@ type ScraperResultLead = {
   email?: string;
   rating_google?: number;
   reviews_google?: number;
+  google_maps_url?: string;
 };
 
 // Chamado pelo scraper local ao terminar (ou falhar) um job reivindicado
@@ -90,6 +91,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             email: l.email || null,
             rating_google: typeof l.rating_google === "number" ? l.rating_google : null,
             reviews_google: typeof l.reviews_google === "number" ? l.reviews_google : null,
+            google_maps_url: l.google_maps_url || null,
             responsavel_atual: e164 ? responsavelPorTelefone.get(e164) ?? null : null,
           };
         })

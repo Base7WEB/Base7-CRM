@@ -45,6 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       email: c.email,
       rating_google: c.rating_google,
       reviews_google: c.reviews_google,
+      google_maps_url: c.google_maps_url,
     }))
   );
 

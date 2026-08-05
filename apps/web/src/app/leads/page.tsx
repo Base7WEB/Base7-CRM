@@ -31,7 +31,7 @@ export default async function LeadsPage({
   let leadsQuery = supabase
     .from("leads")
     .select(
-      "id, empresa, nicho, cidade, telefone, site, instagram, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at"
+      "id, empresa, nicho, cidade, telefone, site, google_maps_url, instagram, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at"
     )
     .order("score", { ascending: false });
 
