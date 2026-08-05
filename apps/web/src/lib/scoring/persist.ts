@@ -13,7 +13,7 @@ export async function recomputeAndSaveLeadScore(
 ): Promise<ScoreResult | null> {
   const { data: lead } = await supabaseAdmin
     .from("leads")
-    .select("telefone, nicho, cidade, instagram, site, email, rating_google, reviews_google")
+    .select("empresa, telefone, nicho, cidade, instagram, site, email, rating_google, reviews_google, classificacao")
     .eq("id", leadId)
     .single();
 
@@ -44,6 +44,13 @@ export async function recomputeAndSaveLeadScore(
     .from("leads")
     .update({ score: result.score, classificacao: result.classificacao })
     .eq("id", leadId);
+
+  if (result.classificacao === "QUENTE" && lead.classificacao !== "QUENTE") {
+    await supabaseAdmin.from("admin_alert_queue").insert({
+      type: "LEAD_HOT",
+      payload: { lead_id: leadId, empresa: lead.empresa, score: result.score },
+    });
+  }
 
   return result;
 }

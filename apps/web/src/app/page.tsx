@@ -133,12 +133,26 @@ export default async function HomePage({
           {profile.role === "ADMIN" ? "Todos os leads" : "Meus leads"}
         </Link>
         {profile.role === "ADMIN" && (
-          <Link
-            href="/admin/usuarios"
-            className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
-          >
-            Gerenciar consultores
-          </Link>
+          <>
+            <Link
+              href="/admin/usuarios"
+              className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+            >
+              Gerenciar consultores
+            </Link>
+            <Link
+              href="/admin/configuracoes"
+              className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+            >
+              Notificações do admin
+            </Link>
+            <Link
+              href="/admin/auditoria"
+              className="rounded-lg border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+            >
+              Auditoria
+            </Link>
+          </>
         )}
       </div>
 

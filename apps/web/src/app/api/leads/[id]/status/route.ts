@@ -60,6 +60,10 @@ export async function PATCH(
       actor_id: user.id,
       payload: { previous_status: previousStatus },
     });
+    await supabaseAdmin.from("admin_alert_queue").insert({
+      type: "SALE_WON",
+      payload: { lead_id: id, empresa: lead.empresa },
+    });
   }
   if (status === "PERDIDO" && previousStatus !== "PERDIDO") {
     await supabaseAdmin.from("lead_events").insert({

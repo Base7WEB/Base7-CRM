@@ -39,6 +39,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alert_queue: {
+        Row: {
+          created_at: string
+          id: string
+          notified: boolean
+          payload: Json
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notified?: boolean
+          payload?: Json
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notified?: boolean
+          payload?: Json
+          type?: string
+        }
+        Relationships: []
+      }
+      admin_notification_settings: {
+        Row: {
+          daily_summary_time: string
+          digest_interval_minutes: number
+          id: number
+          last_daily_summary_sent_on: string | null
+          last_digest_sent_at: string | null
+          notification_group_jid: string | null
+          updated_at: string
+        }
+        Insert: {
+          daily_summary_time?: string
+          digest_interval_minutes?: number
+          id?: number
+          last_daily_summary_sent_on?: string | null
+          last_digest_sent_at?: string | null
+          notification_group_jid?: string | null
+          updated_at?: string
+        }
+        Update: {
+          daily_summary_time?: string
+          digest_interval_minutes?: number
+          id?: number
+          last_daily_summary_sent_on?: string | null
+          last_digest_sent_at?: string | null
+          notification_group_jid?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string

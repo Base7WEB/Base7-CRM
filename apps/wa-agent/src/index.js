@@ -102,8 +102,9 @@ async function processOutbox(socket) {
   }
 
   for (const item of items) {
-    const digits = item.to_phone.replace(/\D/g, "");
-    const jid = `${digits}@s.whatsapp.net`;
+    // to_phone pode ser um numero (envio pra lead/consultor) ou um JID de
+    // grupo pronto (ex: "123-456@g.us", usado pelos alertas do admin).
+    const jid = item.to_phone.includes("@") ? item.to_phone : `${item.to_phone.replace(/\D/g, "")}@s.whatsapp.net`;
     try {
       const sent = await socket.sendMessage(jid, { text: item.body });
       await reportOutboxResult(item.id, { status: "SENT", whatsapp_message_id: sent?.key?.id ?? null });
@@ -186,6 +187,17 @@ async function connect() {
       console.log("[wa-agent] Conectado ao WhatsApp.");
       await postStatus("CONNECTED");
       outboxTimer = setInterval(() => processOutbox(socket), 4000);
+
+      try {
+        const groups = await socket.groupFetchAllParticipating();
+        const list = Object.values(groups);
+        if (list.length > 0) {
+          console.log("[wa-agent] Grupos que este número participa (use o JID em Configurações > notificação do admin):");
+          for (const g of list) console.log(`  - ${g.subject}: ${g.id}`);
+        }
+      } catch (err) {
+        console.error("[wa-agent] Não consegui listar grupos:", err.message);
+      }
     }
 
     if (connection === "close") {

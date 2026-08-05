@@ -1,0 +1,15 @@
+name: Admin notification digest
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama o endpoint de digest do CRM
+        run: |
+          curl -sf -X GET "${{ vars.CRM_BASE_URL }}/api/cron/admin-digest" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

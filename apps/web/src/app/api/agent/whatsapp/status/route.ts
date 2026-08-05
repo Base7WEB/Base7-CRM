@@ -49,6 +49,14 @@ export async function POST(request: Request) {
       target_id: profileId,
       metadata: { previous_status: previous?.status ?? null },
     });
+
+    if (status === "DISCONNECTED" && previous?.status === "CONNECTED") {
+      const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("id", profileId).single();
+      await supabaseAdmin.from("admin_alert_queue").insert({
+        type: "WHATSAPP_DISCONNECTED",
+        payload: { profile_id: profileId, full_name: profile?.full_name ?? "desconhecido" },
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });
