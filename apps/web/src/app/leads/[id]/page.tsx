@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { scoreLead } from "@/lib/scoring";
 import type { Classificacao } from "@/lib/scoring";
 import { AssignResponsavel } from "./assign-responsavel";
-import { SendMessageForm } from "./send-message-form";
+import { ConversationView } from "./conversation-view";
 
 const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
   QUENTE: "bg-red-100 text-red-800 border-red-300",
@@ -147,30 +147,7 @@ export default async function LeadDetailPage({
         )}
       </div>
 
-      <div className="mt-4 rounded-lg border border-neutral-200 p-4">
-        <p className="text-xs font-medium uppercase text-neutral-500">Conversa</p>
-        <div className="mt-2 max-h-80 space-y-2 overflow-y-auto">
-          {(messages ?? []).length === 0 && <p className="text-sm text-neutral-500">Nenhuma mensagem ainda.</p>}
-          {(messages ?? []).map((m, i) => (
-            <div key={i} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[75%] rounded-lg px-3 py-1.5 text-sm ${
-                  m.direction === "OUT" ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"
-                }`}
-              >
-                {m.body}
-              </div>
-            </div>
-          ))}
-        </div>
-        {canSend ? (
-          <div className="mt-3 border-t border-neutral-100 pt-3">
-            <SendMessageForm leadId={lead.id} />
-          </div>
-        ) : (
-          <p className="mt-3 text-xs text-neutral-500">Só o responsável ou o admin podem enviar mensagens.</p>
-        )}
-      </div>
+      <ConversationView leadId={lead.id} initialMessages={messages ?? []} canSend={canSend} />
     </div>
   );
 }

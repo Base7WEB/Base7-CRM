@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function SendMessageForm({ leadId }: { leadId: string }) {
-  const router = useRouter();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queued, setQueued] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
     setSending(true);
     setError(null);
+    setQueued(false);
 
     const res = await fetch(`/api/leads/${leadId}/send`, {
       method: "POST",
@@ -29,21 +29,26 @@ export function SendMessageForm({ leadId }: { leadId: string }) {
     }
 
     setText("");
-    router.refresh();
+    setQueued(true);
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
       <textarea
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => {
+          setText(e.target.value);
+          setQueued(false);
+        }}
         placeholder="Escreva a mensagem..."
         rows={3}
         className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-neutral-500">
-          Entra na fila e é enviada pelo agente WhatsApp do responsável assim que ele estiver online.
+          {queued
+            ? "Na fila — aparece aqui assim que o agente WhatsApp enviar de verdade."
+            : "Entra na fila e é enviada pelo agente WhatsApp do responsável assim que ele estiver online."}
         </p>
         <button
           type="submit"
