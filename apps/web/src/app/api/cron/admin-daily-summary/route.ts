@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { dispatchToAdminOutbox } from "@/lib/admin-notifications";
-
-const SP_OFFSET_MS = 3 * 60 * 60 * 1000; // America/Sao_Paulo = UTC-3, sem horário de verão desde 2019.
-
-function spDateString(d: Date): string {
-  const sp = new Date(d.getTime() - SP_OFFSET_MS);
-  return sp.toISOString().slice(0, 10);
-}
-
-function spDayStartUtc(d: Date): Date {
-  const sp = new Date(d.getTime() - SP_OFFSET_MS);
-  const midnightSp = Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), sp.getUTCDate(), 0, 0, 0);
-  return new Date(midnightSp + SP_OFFSET_MS);
-}
+import {
+  spDateString,
+  isUltimoDiaDoMes,
+  isUltimaOcorrenciaDoDiaSemanaNoMes,
+  enviarRelatorio,
+} from "@/lib/reports";
 
 // Cron nativo da Vercel (vercel.json), 1x/dia -- dentro do limite do plano
-// Hobby. Roda perto do horario configurado e verifica internamente se ja
-// e' hora e se ainda nao foi enviado hoje (last_daily_summary_sent_on).
+// Hobby. O relatório semanal e mensal são checados dentro dessa MESMA
+// execução (é o dia da semana configurado? bate a regra do mês
+// configurada?) em vez de precisar de mais slots de cron.
 export async function GET(request: Request) {
   const auth = request.headers.get("authorization");
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -30,77 +23,38 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const today = spDateString(now);
-  if (settings.last_daily_summary_sent_on === today) {
-    return NextResponse.json({ skipped: true, reason: "já enviado hoje" });
-  }
+  const resultado: Record<string, unknown> = {};
 
-  const since = spDayStartUtc(now).toISOString();
-
-  const { data: leads } = await supabaseAdmin.from("leads").select("id, responsavel_id, created_at");
-  const novosHoje = (leads ?? []).filter((l) => l.created_at >= since).length;
-
-  const { data: events } = await supabaseAdmin
-    .from("lead_events")
-    .select("type, lead_id, created_at")
-    .in("type", ["FIRST_CONTACT_SENT", "LEAD_REPLIED", "SALE_WON"])
-    .gte("created_at", since);
-
-  const contatos = (events ?? []).filter((e) => e.type === "FIRST_CONTACT_SENT").length;
-  const respostas = (events ?? []).filter((e) => e.type === "LEAD_REPLIED").length;
-  const vendas = (events ?? []).filter((e) => e.type === "SALE_WON").length;
-
-  const { data: leadsParados } = await supabaseAdmin.from("leads_parados").select("lead_id");
-
-  const { data: consultores } = await supabaseAdmin
-    .from("profiles")
-    .select("id, full_name")
-    .eq("role", "CONSULTOR_COMERCIAL")
-    .eq("is_active", true);
-
-  const leadsByConsultor = new Map((leads ?? []).map((l) => [l.id, l.responsavel_id]));
-  const vendasPorConsultor = new Map<string, number>();
-  for (const e of events ?? []) {
-    if (e.type !== "SALE_WON") continue;
-    const responsavelId = leadsByConsultor.get(e.lead_id);
-    if (!responsavelId) continue;
-    vendasPorConsultor.set(responsavelId, (vendasPorConsultor.get(responsavelId) ?? 0) + 1);
-  }
-  let melhorDesempenho: string | null = null;
-  let melhorVendas = 0;
-  for (const c of consultores ?? []) {
-    const v = vendasPorConsultor.get(c.id) ?? 0;
-    if (v > melhorVendas) {
-      melhorVendas = v;
-      melhorDesempenho = c.full_name;
-    }
-  }
-
-  if (novosHoje === 0 && contatos === 0 && respostas === 0 && vendas === 0) {
+  if (settings.last_daily_summary_sent_on !== today) {
+    const diario = await enviarRelatorio("diario", now);
+    // Marca como "feito hoje" mesmo sem atividade nenhuma -- senão o cron
+    // ficaria tentando de novo a cada execução do mesmo dia sem nunca ter
+    // nada novo pra reportar.
     await supabaseAdmin.from("admin_notification_settings").update({ last_daily_summary_sent_on: today }).eq("id", 1);
-    return NextResponse.json({ skipped: true, reason: "sem atividade hoje" });
+    resultado.diario = diario;
   }
 
-  const lines = [
-    "📈 *BASE7 CRM — Fechamento do dia*",
-    "",
-    `👥 Consultores ativos: ${consultores?.length ?? 0}`,
-    "",
-    `📥 Novos leads: ${novosHoje}`,
-    `📤 Contatos: ${contatos}`,
-    `📩 Respostas: ${respostas}`,
-    `🤝 Vendas: ${vendas}`,
-    "",
-    `⚠️ Leads sem acompanhamento: ${leadsParados?.length ?? 0}`,
-  ];
-  if (melhorDesempenho) {
-    lines.push("", `🏆 Melhor desempenho: ${melhorDesempenho}`);
+  const hojeEhDiaDaSemana = new Date(now.getTime() - 3 * 60 * 60 * 1000).getUTCDay() === settings.weekly_summary_weekday;
+  if (hojeEhDiaDaSemana && settings.last_weekly_summary_sent_on !== today) {
+    const semanal = await enviarRelatorio("semanal", now);
+    await supabaseAdmin.from("admin_notification_settings").update({ last_weekly_summary_sent_on: today }).eq("id", 1);
+    resultado.semanal = semanal;
   }
 
-  const result = await dispatchToAdminOutbox(lines.join("\n"));
+  const bateRegraMensal =
+    settings.monthly_summary_rule === "ultimo_dia"
+      ? isUltimoDiaDoMes(now)
+      : settings.monthly_summary_rule === "ultima_sexta"
+        ? isUltimaOcorrenciaDoDiaSemanaNoMes(now, 5)
+        : isUltimaOcorrenciaDoDiaSemanaNoMes(now, 6);
 
-  if (result.sent) {
-    await supabaseAdmin.from("admin_notification_settings").update({ last_daily_summary_sent_on: today }).eq("id", 1);
+  const mesAtual = today.slice(0, 7);
+  const mesDoUltimoEnvio = settings.last_monthly_summary_sent_on?.slice(0, 7);
+  if (bateRegraMensal && mesDoUltimoEnvio !== mesAtual) {
+    const mensal = await enviarRelatorio("mensal", now);
+    await supabaseAdmin.from("admin_notification_settings").update({ last_monthly_summary_sent_on: today }).eq("id", 1);
+    resultado.mensal = mensal;
   }
 
-  return NextResponse.json({ sent: result.sent, reason: result.reason ?? null });
+  return NextResponse.json({ ok: true, ...resultado });
 }

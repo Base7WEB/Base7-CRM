@@ -34,7 +34,9 @@ export function WhatsappClient({
   async function gerarToken() {
     if (
       temTokenAtivo &&
-      !confirm("Já existe um token ativo. Gerar um novo vai desconectar a sessão atual até você configurar o novo. Continuar?")
+      !confirm(
+        "Já existe um token ativo. Gerar um novo revoga o atual imediatamente -- vai desconectar o WhatsApp E a Prospecção (mesmo token pros dois) até você atualizar o .env dos dois com o novo valor. Continuar?"
+      )
     ) {
       return;
     }
@@ -104,8 +106,10 @@ export function WhatsappClient({
             <p className="font-semibold">Token gerado — copie agora, ele não será mostrado de novo:</p>
             <code className="mt-2 block break-all rounded-md bg-black/30 px-2 py-1.5 font-mono text-amber-100">{token}</code>
             <p className="mt-2 text-amber-200/80">
-              Cole no <code>.env</code> de <code>apps/wa-agent</code> (chave <code>CRM_AGENT_TOKEN</code>) — o mesmo token
-              também serve pro scraper local, se quiser usar a Prospecção.
+              Cole esse mesmo valor no <code>CRM_AGENT_TOKEN</code> do <code>.env</code> de{" "}
+              <strong>tanto</strong> <code>apps/wa-agent</code> <strong>quanto</strong> <code>apps/scraper</code> — é o
+              mesmo token pros dois. Se só atualizar um dos dois, o outro para de funcionar (fica com o token antigo,
+              já revogado).
             </p>
           </div>
         )}

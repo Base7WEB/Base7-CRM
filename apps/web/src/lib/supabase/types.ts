@@ -70,8 +70,14 @@ export type Database = {
           id: number
           last_daily_summary_sent_on: string | null
           last_digest_sent_at: string | null
+          last_monthly_summary_sent_on: string | null
+          last_weekly_summary_sent_on: string | null
+          monthly_summary_rule: string
+          monthly_summary_time: string
           notification_group_jid: string | null
           updated_at: string
+          weekly_summary_time: string
+          weekly_summary_weekday: number
         }
         Insert: {
           daily_summary_time?: string
@@ -79,8 +85,14 @@ export type Database = {
           id?: number
           last_daily_summary_sent_on?: string | null
           last_digest_sent_at?: string | null
+          last_monthly_summary_sent_on?: string | null
+          last_weekly_summary_sent_on?: string | null
+          monthly_summary_rule?: string
+          monthly_summary_time?: string
           notification_group_jid?: string | null
           updated_at?: string
+          weekly_summary_time?: string
+          weekly_summary_weekday?: number
         }
         Update: {
           daily_summary_time?: string
@@ -88,8 +100,14 @@ export type Database = {
           id?: number
           last_daily_summary_sent_on?: string | null
           last_digest_sent_at?: string | null
+          last_monthly_summary_sent_on?: string | null
+          last_weekly_summary_sent_on?: string | null
+          monthly_summary_rule?: string
+          monthly_summary_time?: string
           notification_group_jid?: string | null
           updated_at?: string
+          weekly_summary_time?: string
+          weekly_summary_weekday?: number
         }
         Relationships: []
       }

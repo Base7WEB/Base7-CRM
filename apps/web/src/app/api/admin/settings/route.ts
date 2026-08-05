@@ -35,6 +35,10 @@ export async function PATCH(request: Request) {
   if (typeof body.notification_group_jid === "string") {
     update.notification_group_jid = body.notification_group_jid.trim() || null;
   }
+  if (typeof body.weekly_summary_weekday === "number") update.weekly_summary_weekday = body.weekly_summary_weekday;
+  if (typeof body.weekly_summary_time === "string") update.weekly_summary_time = body.weekly_summary_time;
+  if (typeof body.monthly_summary_rule === "string") update.monthly_summary_rule = body.monthly_summary_rule;
+  if (typeof body.monthly_summary_time === "string") update.monthly_summary_time = body.monthly_summary_time;
 
   const supabaseAdmin = createAdminClient();
   const { error } = await supabaseAdmin.from("admin_notification_settings").update(update).eq("id", 1);

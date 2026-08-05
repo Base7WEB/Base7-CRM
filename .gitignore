@@ -20,6 +20,16 @@ build/
 apps/wa-agent/**/session-data/
 apps/wa-agent/**/sessions/
 
+# scraper local (venv/cache nunca versionados)
+apps/scraper/venv/
+apps/scraper/__pycache__/
+apps/scraper/**/__pycache__/
+
+# copias locais dos agentes pra rodar mais de um consultor na mesma maquina
+# (cada uma tem seu proprio .env/token -- nunca deve ir pro repo)
+apps/* - Copia/
+apps/*Copia*/
+
 # legado Python — nunca versionar sessão do WhatsApp nem chaves em texto plano
 legacy/backend/data/whatsapp_session/
 legacy/backend/data/config.json

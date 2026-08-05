@@ -2,48 +2,46 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { Classificacao } from "@/lib/scoring";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/app-shell";
+import { LeadsTableClient } from "./leads-table-client";
 
-const STATUS_LABEL: Record<string, string> = {
-  NOVO: "Novo",
-  CONTATO_REALIZADO: "Contato realizado",
-  INTERAGINDO: "Interagindo",
-  QUALIFICADO: "Qualificado",
-  REUNIAO_AGENDADA: "Reunião agendada",
-  PROPOSTA_ENVIADA: "Proposta enviada",
-  NEGOCIACAO: "Negociação",
-  GANHO: "Ganho",
-  PERDIDO: "Perdido",
-  SEM_INTERESSE: "Sem interesse",
-  SEM_RESPOSTA: "Sem resposta",
-};
-
-const CLASSIFICACAO_BADGE: Record<Classificacao, string> = {
-  QUENTE: "badge-hot",
-  QUALIFICADO: "badge-qualified",
-  MORNO: "badge-medium",
-  FRIO: "badge-cold",
-};
-
-const CLASSIFICACAO_LABEL: Record<Classificacao, string> = {
-  QUENTE: "🔥 Quente",
-  QUALIFICADO: "🟠 Qualificado",
-  MORNO: "🟡 Morno",
-  FRIO: "🔵 Frio",
-};
-
-export default async function LeadsPage() {
+export default async function LeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ responsavel?: string }>;
+}) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
+  const { responsavel: responsavelFiltro } = await searchParams;
+
+  let consultores: { id: string; full_name: string }[] = [];
+  if (profile.role === "ADMIN") {
+    const supabaseAdmin = createAdminClient();
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name")
+      .eq("is_active", true)
+      .order("full_name");
+    consultores = data ?? [];
+  }
+
   const supabase = await createClient();
-  const { data: leads } = await supabase
+  let leadsQuery = supabase
     .from("leads")
     .select(
       "id, empresa, nicho, cidade, telefone, site, instagram, status, responsavel_id, responsavel_legado_texto, score, classificacao, created_at"
     )
     .order("score", { ascending: false });
+
+  if (profile.role === "ADMIN" && responsavelFiltro === "sem") {
+    leadsQuery = leadsQuery.is("responsavel_id", null);
+  } else if (profile.role === "ADMIN" && responsavelFiltro) {
+    leadsQuery = leadsQuery.eq("responsavel_id", responsavelFiltro);
+  }
+
+  const { data: leads } = await leadsQuery;
 
   const responsavelIds = [...new Set((leads ?? []).map((l) => l.responsavel_id).filter(Boolean))];
   const { data: responsaveis } =
@@ -61,100 +59,40 @@ export default async function LeadsPage() {
         </div>
       </div>
 
-      <div className="box">
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Empresa</th>
-                <th>Telefone</th>
-                <th>Site</th>
-                <th>Instagram</th>
-                <th>Status</th>
-                <th>Classificação</th>
-                <th>Responsável</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {(leads ?? []).map((lead) => (
-                <tr key={lead.id}>
-                  <td>
-                    <Link href={`/leads/${lead.id}`} className="font-semibold text-white hover:text-(--cyan)">
-                      {lead.empresa}
-                    </Link>
-                    {(lead.nicho || lead.cidade) && (
-                      <p className="text-xs text-(--muted)">
-                        {[lead.nicho, lead.cidade].filter(Boolean).join(" · ")}
-                      </p>
-                    )}
-                  </td>
-                  <td className="text-(--text)">{lead.telefone}</td>
-                  <td>
-                    {lead.site ? (
-                      <a
-                        href={lead.site.startsWith("http") ? lead.site : `https://${lead.site}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-(--cyan) hover:underline"
-                        title={lead.site}
-                      >
-                        ✓
-                      </a>
-                    ) : (
-                      <span className="text-(--muted)">—</span>
-                    )}
-                  </td>
-                  <td>
-                    {lead.instagram ? (
-                      <a
-                        href={
-                          lead.instagram.startsWith("http")
-                            ? lead.instagram
-                            : `https://instagram.com/${lead.instagram.replace(/^@/, "")}`
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-(--cyan) hover:underline"
-                        title={lead.instagram}
-                      >
-                        ✓
-                      </a>
-                    ) : (
-                      <span className="text-(--muted)">—</span>
-                    )}
-                  </td>
-                  <td className="text-(--text)">
-                    <span className="badge badge-status">{STATUS_LABEL[lead.status] ?? lead.status}</span>
-                  </td>
-                  <td>
-                    <span className={`badge ${CLASSIFICACAO_BADGE[lead.classificacao as Classificacao]}`}>
-                      {CLASSIFICACAO_LABEL[lead.classificacao as Classificacao]} · {lead.score}
-                    </span>
-                  </td>
-                  <td className="text-(--text)">
-                    {lead.responsavel_id
-                      ? responsavelById.get(lead.responsavel_id) ?? "—"
-                      : lead.responsavel_legado_texto || "Não atribuído"}
-                  </td>
-                  <td>
-                    {lead.telefone && (
-                      <Link
-                        href={`/leads/${lead.id}#conversa`}
-                        title="Abrir conversa no WhatsApp"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-(--success) hover:bg-white/5"
-                      >
-                        💬
-                      </Link>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(leads ?? []).length === 0 && <p className="empty">Nenhum lead ainda.</p>}
+      {profile.role === "ADMIN" && (
+        <div className="mb-4 flex flex-wrap gap-1">
+          <Link
+            href="/leads"
+            className={!responsavelFiltro ? "btn-sm bg-(--cyan)/15 text-(--cyan)" : "btn-sm text-(--muted) hover:bg-white/5"}
+          >
+            Visão geral
+          </Link>
+          <Link
+            href="/leads?responsavel=sem"
+            className={responsavelFiltro === "sem" ? "btn-sm bg-(--cyan)/15 text-(--cyan)" : "btn-sm text-(--muted) hover:bg-white/5"}
+          >
+            Não atribuídos
+          </Link>
+          {consultores.map((c) => (
+            <Link
+              key={c.id}
+              href={`/leads?responsavel=${c.id}`}
+              className={
+                responsavelFiltro === c.id ? "btn-sm bg-(--cyan)/15 text-(--cyan)" : "btn-sm text-(--muted) hover:bg-white/5"
+              }
+            >
+              {c.full_name.split(" ")[0]}
+            </Link>
+          ))}
         </div>
-      </div>
+      )}
+
+      <LeadsTableClient
+        leads={leads ?? []}
+        responsavelById={responsavelById}
+        consultores={consultores}
+        isAdmin={profile.role === "ADMIN"}
+      />
     </AppShell>
   );
 }

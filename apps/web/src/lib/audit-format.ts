@@ -68,6 +68,13 @@ export function formatAuditLog(
           : `${actorName} removeu o responsável do lead "${s(m.empresa)}".`,
         categoria: "lead",
       };
+    case "LEADS_BULK_REASSIGNED":
+      return {
+        texto: m.responsavel_novo
+          ? `${actorName} atribuiu ${m.total ?? 0} lead(s) a ${s(m.responsavel_nome) || "um consultor"}.`
+          : `${actorName} removeu o responsável de ${m.total ?? 0} lead(s).`,
+        categoria: "lead",
+      };
     case "LEAD_STATUS_CHANGED":
       return {
         texto: `${actorName} mudou o status do lead "${s(m.empresa)}" de ${s(m.de)} para ${s(m.para)}.`,
