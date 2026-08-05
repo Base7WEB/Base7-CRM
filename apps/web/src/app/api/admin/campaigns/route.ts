@@ -48,6 +48,7 @@ export async function POST(request: Request) {
   const descricao = String(body.descricao ?? "").trim();
   const nicho = String(body.nicho ?? "").trim() || null;
   const cidade = String(body.cidade ?? "").trim() || null;
+  const responsavelId = String(body.responsavel_id ?? "").trim() || null;
   const tags: string[] = Array.isArray(body.tags) ? body.tags.map(String).filter(Boolean) : [];
   const leadIds: string[] = Array.isArray(body.lead_ids)
     ? Array.from(new Set<string>(body.lead_ids.map((v: unknown) => String(v))))
@@ -82,18 +83,22 @@ export async function POST(request: Request) {
   const supabaseAdmin = createAdminClient();
 
   // Só entram leads com responsável definido -- sem isso não tem de qual
-  // WhatsApp enviar.
-  const { data: leadsValidos } = await supabaseAdmin
-    .from("leads")
-    .select("id")
-    .in("id", leadIds)
-    .not("responsavel_id", "is", null);
+  // WhatsApp enviar. Se a campanha é de um consultor específico, também
+  // trava aqui (defesa em profundidade -- o filtro já acontece na busca do
+  // wizard, mas nunca confia só no client).
+  let leadsQuery = supabaseAdmin.from("leads").select("id").in("id", leadIds);
+  leadsQuery = responsavelId ? leadsQuery.eq("responsavel_id", responsavelId) : leadsQuery.not("responsavel_id", "is", null);
+  const { data: leadsValidos } = await leadsQuery;
   const idsValidos = new Set((leadsValidos ?? []).map((l) => l.id));
   const idsFiltrados = leadIds.filter((id) => idsValidos.has(id));
 
   if (idsFiltrados.length === 0) {
     return NextResponse.json(
-      { error: "Nenhum dos leads selecionados tem responsável definido." },
+      {
+        error: responsavelId
+          ? "Nenhum dos leads selecionados pertence ao consultor escolhido."
+          : "Nenhum dos leads selecionados tem responsável definido.",
+      },
       { status: 400 }
     );
   }
@@ -105,6 +110,7 @@ export async function POST(request: Request) {
       descricao,
       nicho,
       cidade,
+      responsavel_id: responsavelId,
       tags,
       corpo_mensagem: corpoMensagem,
       intervalo_min_seg: intervaloMin,

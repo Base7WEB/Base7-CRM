@@ -22,6 +22,16 @@ export async function GET(
   const { data: campaign } = await supabaseAdmin.from("campaigns").select("*").eq("id", id).single();
   if (!campaign) return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
 
+  let responsavel_nome: string | null = null;
+  if (campaign.responsavel_id) {
+    const { data: responsavel } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", campaign.responsavel_id)
+      .single();
+    responsavel_nome = responsavel?.full_name ?? null;
+  }
+
   const { data: followups } = await supabaseAdmin
     .from("campaign_followups")
     .select("*")
@@ -63,7 +73,7 @@ export async function GET(
   const vendas = leadsAtuais.filter((l) => l.status === "GANHO").length;
 
   return NextResponse.json({
-    campaign,
+    campaign: { ...campaign, responsavel_nome },
     followups: followups ?? [],
     leads: campaignLeads ?? [],
     metrics: {

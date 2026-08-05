@@ -54,9 +54,18 @@ function resumoParams(job: Job): string {
   return `#${p.hashtag ?? "?"}`;
 }
 
-export function ProspeccaoClient({ isAdmin }: { isAdmin: boolean }) {
+export function ProspeccaoClient({
+  isAdmin,
+  consultores,
+  consultorInicial,
+}: {
+  isAdmin: boolean;
+  consultores: { id: string; full_name: string }[];
+  consultorInicial: string;
+}) {
   const supabase = useMemo(() => createClient(), []);
   const [modo, setModo] = useState<"maps" | "instagram">("maps");
+  const [consultorAlvo, setConsultorAlvo] = useState(consultorInicial);
 
   const [nicho, setNicho] = useState("");
   const [cidade, setCidade] = useState("");
@@ -131,7 +140,9 @@ export function ProspeccaoClient({ isAdmin }: { isAdmin: boolean }) {
         ? { nicho: nicho.trim(), cidade: cidade.trim(), raio_km: raioKm, rating_min: ratingMin, max_resultados: maxResultadosMaps, enriquecer }
         : { hashtag: hashtag.trim(), max_resultados: maxResultadosIg };
 
-    const { error: err } = await supabase.from("scraper_jobs").insert({ requested_by: user.id, modo, params });
+    const { error: err } = await supabase
+      .from("scraper_jobs")
+      .insert({ requested_by: consultorAlvo || user.id, modo, params });
     setEnviando(false);
     if (err) {
       setError(err.message);
@@ -196,6 +207,24 @@ export function ProspeccaoClient({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       <div className="box">
+        {isAdmin && consultores.length > 0 && (
+          <div className="mb-4 min-w-[220px] max-w-xs">
+            <label>Buscar para</label>
+            <select value={consultorAlvo} onChange={(e) => setConsultorAlvo(e.target.value)}>
+              <option value="">Eu mesmo</option>
+              {consultores.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.full_name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-(--muted)">
+              Os leads encontrados ficam atribuídos a essa pessoa -- só o <code>escutar-fila.bat</code> dela mesma processa
+              o pedido (o token é individual).
+            </p>
+          </div>
+        )}
+
         <div className="mb-3 flex gap-0 border-b border-(--border)">
           <button
             onClick={() => setModo("maps")}

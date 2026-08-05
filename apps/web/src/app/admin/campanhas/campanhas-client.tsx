@@ -18,8 +18,11 @@ type Campaign = {
   limite_campanha: number | null;
   intervalo_min_seg: number;
   intervalo_max_seg: number;
+  responsavel_id: string | null;
   counts: { total: number; enviado: number; falhou: number; pulado: number; pendente: number };
 };
+
+type Consultor = { id: string; full_name: string };
 
 type LeadOption = {
   id: string;
@@ -73,6 +76,7 @@ function renderPreview(texto: string, lead: LeadOption | null): string {
 export function CampanhasClient() {
   const supabase = useMemo(() => createClient(), []);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [consultores, setConsultores] = useState<Consultor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWizard, setShowWizard] = useState(false);
@@ -89,6 +93,18 @@ export function CampanhasClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "CONSULTOR_COMERCIAL")
+      .eq("is_active", true)
+      .order("full_name")
+      .then(({ data }) => setConsultores(data ?? []));
+  }, [supabase]);
+
+  const nomeConsultorById = useMemo(() => new Map(consultores.map((c) => [c.id, c.full_name])), [consultores]);
 
   async function handleAction(id: string, action: "start" | "cancel" | "pause") {
     setError(null);
@@ -133,6 +149,7 @@ export function CampanhasClient() {
       {showWizard && (
         <CampaignWizard
           supabase={supabase}
+          consultores={consultores}
           onCreated={async () => {
             setShowWizard(false);
             await load();
@@ -156,6 +173,9 @@ export function CampanhasClient() {
                   </Link>
                   <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-(--muted)">
                     <span className={`badge ${STATUS_CAMPANHA_BADGE[c.status] ?? "badge-status"}`}>{c.status}</span>
+                    <span className="badge badge-status">
+                      {c.responsavel_id ? nomeConsultorById.get(c.responsavel_id) ?? "Consultor" : "Geral"}
+                    </span>
                     {c.modo_teste && <span className="badge badge-medium">🧪 Teste</span>}
                     {c.modo_conservador && <span className="badge badge-cold">🐢 Conservador</span>}
                     {c.counts.total} leads · {c.counts.enviado} enviados · {c.counts.falhou} falharam ·{" "}
@@ -203,10 +223,12 @@ export function CampanhasClient() {
 
 function CampaignWizard({
   supabase,
+  consultores,
   onCreated,
   onError,
 }: {
   supabase: ReturnType<typeof createClient>;
+  consultores: Consultor[];
   onCreated: () => void;
   onError: (msg: string) => void;
 }) {
@@ -216,6 +238,7 @@ function CampaignWizard({
   const [nicho, setNicho] = useState("");
   const [cidade, setCidade] = useState("");
   const [tagsTexto, setTagsTexto] = useState("");
+  const [consultorCampanha, setConsultorCampanha] = useState("");
 
   // Passo 2 -- seleção de leads
   const [filtroNicho, setFiltroNicho] = useState("");
@@ -261,14 +284,18 @@ function CampaignWizard({
     return map;
   }, [templates]);
 
-  async function buscarLeads() {
+  async function buscarLeads(consultorOverride?: string) {
     setBuscandoLeads(true);
+    const consultorAlvo = consultorOverride ?? consultorCampanha;
     let query = supabase
       .from("leads")
       .select("id, empresa, telefone, nicho, cidade, status, classificacao, score, responsavel_id")
-      .not("responsavel_id", "is", null)
       .order("empresa")
       .limit(300);
+    // Campanha "geral": qualquer lead com responsável. Campanha de um
+    // consultor específico: trava só nos leads dele (nunca mistura).
+    if (consultorAlvo) query = query.eq("responsavel_id", consultorAlvo);
+    else query = query.not("responsavel_id", "is", null);
     if (filtroNicho) query = query.ilike("nicho", `%${filtroNicho}%`);
     if (filtroCidade) query = query.ilike("cidade", `%${filtroCidade}%`);
     if (filtroStatus) query = query.eq("status", filtroStatus);
@@ -295,6 +322,12 @@ function CampaignWizard({
     buscarLeads();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function handleConsultorCampanhaChange(value: string) {
+    setConsultorCampanha(value);
+    setSelecionados(new Set());
+    buscarLeads(value);
+  }
 
   function toggleLead(id: string) {
     setSelecionados((prev) => {
@@ -359,6 +392,7 @@ function CampaignWizard({
         descricao,
         nicho: nicho || null,
         cidade: cidade || null,
+        responsavel_id: consultorCampanha || null,
         tags: tagsTexto
           .split(",")
           .map((t) => t.trim())
@@ -411,6 +445,22 @@ function CampaignWizard({
           <label>Tags (separadas por vírgula)</label>
           <input value={tagsTexto} onChange={(e) => setTagsTexto(e.target.value)} placeholder="ex: reativação, q1" />
         </div>
+        <div className="min-w-[200px] flex-1">
+          <label>Campanha de</label>
+          <select value={consultorCampanha} onChange={(e) => handleConsultorCampanhaChange(e.target.value)}>
+            <option value="">Geral (qualquer consultor)</option>
+            {consultores.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.full_name}
+              </option>
+            ))}
+          </select>
+          {consultorCampanha && (
+            <p className="mt-1 text-xs text-(--muted)">
+              A seleção de leads abaixo fica travada só nos leads de {consultores.find((c) => c.id === consultorCampanha)?.full_name}.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="box-header">
@@ -445,9 +495,18 @@ function CampaignWizard({
             onChange={(e) => setFiltroScoreMin(Number(e.target.value))}
           />
         </div>
-        <button type="button" onClick={buscarLeads} className="btn-outline btn-sm" disabled={buscandoLeads}>
+        <button type="button" onClick={() => buscarLeads()} className="btn-outline btn-sm" disabled={buscandoLeads}>
           {buscandoLeads ? "Buscando..." : "Buscar leads"}
         </button>
+        {consultorCampanha && (
+          <Link
+            href={`/prospeccao?consultor=${consultorCampanha}`}
+            target="_blank"
+            className="btn-ghost btn-sm text-(--cyan)"
+          >
+            🔎 Prospectar mais leads pra {consultores.find((c) => c.id === consultorCampanha)?.full_name}
+          </Link>
+        )}
       </div>
 
       <div className="mb-2 flex items-center justify-between text-xs text-(--muted)">

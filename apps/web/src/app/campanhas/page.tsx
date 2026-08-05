@@ -20,9 +20,12 @@ export default async function CampanhasConsultorPage() {
 
   const supabase = await createClient();
 
+  // Campanhas "gerais" (responsavel_id null) aparecem pra todo mundo; uma
+  // campanha de um consultor específico só aparece pra ele mesmo.
   const { data: campaigns } = await supabase
     .from("campaigns")
     .select("*")
+    .or(`responsavel_id.is.null,responsavel_id.eq.${profile.id}`)
     .order("created_at", { ascending: false });
 
   const results = await Promise.all(
@@ -64,6 +67,7 @@ export default async function CampanhasConsultorPage() {
                   <p className="font-semibold text-white">{c.nome}</p>
                   <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-(--muted)">
                     <span className={`badge ${STATUS_CAMPANHA_BADGE[c.status] ?? "badge-status"}`}>{c.status}</span>
+                    <span className="badge badge-status">{c.responsavel_id ? "👤 Sua campanha" : "🌐 Geral"}</span>
                     {c.counts.total} lead(s) seu(s) · {c.counts.enviado} enviados · {c.counts.falhou} falharam ·{" "}
                     {c.counts.pendente} pendentes
                   </p>

@@ -28,6 +28,8 @@ type Campaign = {
   limite_campanha: number | null;
   modo_teste: boolean;
   modo_conservador: boolean;
+  responsavel_id: string | null;
+  responsavel_nome: string | null;
 };
 
 type Followup = { id: string; ordem: number; dias: number; texto: string };
@@ -161,6 +163,9 @@ export function CampaignDetailClient({ campaignId }: { campaignId: string }) {
         </div>
         <div className="flex items-center gap-2">
           <span className={`badge ${STATUS_CAMPANHA_BADGE[campaign.status] ?? "badge-status"}`}>{campaign.status}</span>
+          <span className="badge badge-status">
+            {campaign.responsavel_id ? `👤 ${campaign.responsavel_nome ?? "Consultor"}` : "🌐 Geral"}
+          </span>
           {campaign.modo_teste && <span className="badge badge-medium">🧪 Teste</span>}
           {campaign.modo_conservador && <span className="badge badge-cold">🐢 Conservador</span>}
           {(campaign.status === "RASCUNHO" || campaign.status === "PAUSADA") && (

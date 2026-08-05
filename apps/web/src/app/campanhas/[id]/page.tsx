@@ -30,6 +30,8 @@ export default async function CampanhaConsultorDetailPage({ params }: { params: 
 
   const { data: campaign } = await supabase.from("campaigns").select("*").eq("id", id).single();
   if (!campaign) notFound();
+  // Campanha de outro consultor específico não é dele -- não mostra.
+  if (campaign.responsavel_id && campaign.responsavel_id !== profile.id) notFound();
 
   const { data: followups } = await supabase
     .from("campaign_followups")
@@ -55,7 +57,10 @@ export default async function CampanhaConsultorDetailPage({ params }: { params: 
           <h1>{campaign.nome}</h1>
           <p>{campaign.descricao || "Sem descrição."}</p>
         </div>
-        <span className={`badge ${STATUS_CAMPANHA_BADGE[campaign.status] ?? "badge-status"}`}>{campaign.status}</span>
+        <div className="flex items-center gap-2">
+          <span className={`badge ${STATUS_CAMPANHA_BADGE[campaign.status] ?? "badge-status"}`}>{campaign.status}</span>
+          <span className="badge badge-status">{campaign.responsavel_id ? "👤 Sua campanha" : "🌐 Geral"}</span>
+        </div>
       </div>
 
       <div className="box">

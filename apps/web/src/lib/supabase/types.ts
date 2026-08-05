@@ -275,6 +275,7 @@ export type Database = {
           modo_teste: boolean
           nicho: string | null
           nome: string
+          responsavel_id: string | null
           status: string
           tags: string[]
           updated_at: string
@@ -294,6 +295,7 @@ export type Database = {
           modo_teste?: boolean
           nicho?: string | null
           nome: string
+          responsavel_id?: string | null
           status?: string
           tags?: string[]
           updated_at?: string
@@ -313,11 +315,19 @@ export type Database = {
           modo_teste?: boolean
           nicho?: string | null
           nome?: string
+          responsavel_id?: string | null
           status?: string
           tags?: string[]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "campaigns_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "campaigns_created_by_fkey"
             columns: ["created_by"]
