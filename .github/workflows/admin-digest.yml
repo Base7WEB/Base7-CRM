@@ -21,5 +21,4 @@ jobs:
             BASE_URL: ${{ vars.CRM_BASE_URL }}
             CRON_SECRET: ${{ secrets.CRON_SECRET }}
           run: |
-            curl -v -sf -X GET "$BASE_URL/api/cron/admin-digest"
-  -H "Authorization: Bearer $CRON_SECRET"
+            curl -v -sf -X GET "$BASE_URL/api/cron/admin-digest" -H "Authorization: Bearer $CRON_SECRET"
