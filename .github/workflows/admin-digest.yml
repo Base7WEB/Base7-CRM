@@ -1,24 +1,25 @@
 name: Admin notification digest
 
-  on:
+on:
     schedule:
       - cron: "*/30 * * * *"
     workflow_dispatch: {}
 
-  jobs:
+jobs:
     digest:
       runs-on: ubuntu-latest
       steps:
-        - name: Debug (temporario) - confirma o que chega nas
-  vars/secrets
-          run: |
-            echo "CRM_BASE_URL = '${{ vars.CRM_BASE_URL }}'"
-            echo "tamanho do CRON_SECRET = ${#CRON_SECRET}"
+        - name: Debug temporario
           env:
+            BASE_URL: ${{ vars.CRM_BASE_URL }}
             CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        - name: Chama o endpoint de digest do CRM
           run: |
-            curl -v -sf -X GET "${{ vars.CRM_BASE_URL
-  }}/api/cron/admin-digest" \
-              -H "Authorization: Bearer ${{ secrets.CRON_SECRET
-  }}"
+            echo "CRM_BASE_URL = '$BASE_URL'"
+            echo "tamanho do CRON_SECRET = ${#CRON_SECRET}"
+        - name: Chama endpoint de digest
+          env:
+            BASE_URL: ${{ vars.CRM_BASE_URL }}
+            CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          run: |
+            curl -v -sf -X GET "$BASE_URL/api/cron/admin-digest"
+  -H "Authorization: Bearer $CRON_SECRET"
